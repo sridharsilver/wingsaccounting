@@ -295,8 +295,9 @@ export const ChatBot: React.FC = () => {
               </CardFooter>
             </Card>
           </motion.div>
-        )}
-      </AnimatePresence>
+        </>
+      )}
+    </AnimatePresence>
 
       {/* FAB Button */}
       <motion.button
