@@ -35,8 +35,6 @@ function PortfolioPage() {
   const [imageUrl, setImageUrl] = useState("");
   const [viewMode, setViewMode] = useState<"list" | "grid">("grid");
 
-  // ... rest of the fetch functions ...
-
   const handleEdit = (project: any) => {
     setEditingProject(project);
     setImageUrl(project.image_url);
@@ -44,6 +42,110 @@ function PortfolioPage() {
     setSelectedProject(null);
   };
 
+  useEffect(() => {
+    fetchProjects();
+  }, []);
+
+  async function fetchProjects() {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("portfolio")
+      .select("*")
+      .order("created_at", { ascending: false });
+    
+    if (error) {
+      toast.error("Failed to fetch projects");
+    } else {
+      setProjects(data || []);
+    }
+    setLoading(false);
+  }
+
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("File is too large. Maximum size is 2MB.");
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+      const fileName = `${Date.now()}-${Math.floor(Math.random() * 1000)}.${fileExt}`;
+      const filePath = `portfolio/${fileName}`;
+
+      const { data, error } = await supabase.storage
+        .from("images")
+        .upload(filePath, file, { upsert: true });
+
+      if (error) {
+        console.error("Upload error details:", error);
+        throw new Error(error.message || "Failed to upload to Supabase storage");
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from("images")
+        .getPublicUrl(filePath);
+
+      setImageUrl(publicUrl);
+      toast.success("Image uploaded successfully! Remember to click Update Project.");
+    } catch (err: any) {
+      console.error(err);
+      toast.error(`Upload failed: ${err.message}`);
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const payload = {
+      title: formData.get("title"),
+      category: formData.get("category"),
+      description: formData.get("description"),
+      featured: formData.get("featured") === "on",
+      image_url: imageUrl,
+    };
+
+    let error;
+    if (editingProject) {
+      const { error: err } = await supabase
+        .from("portfolio")
+        .update(payload)
+        .eq("id", editingProject.id);
+      error = err;
+    } else {
+      const { error: err } = await supabase
+        .from("portfolio")
+        .insert([payload]);
+      error = err;
+    }
+
+    if (error) {
+      toast.error("Failed to save project");
+    } else {
+      toast.success(editingProject ? "Project updated" : "Project created");
+      setIsOpen(false);
+      fetchProjects();
+    }
+  }
+
+  async function handleDelete(id: string) {
+    if (!confirm("Are you sure?")) return;
+    const { error } = await supabase.from("portfolio").delete().eq("id", id);
+    if (error) {
+      toast.error("Delete failed");
+    } else {
+      toast.success("Project deleted");
+      fetchProjects();
+    }
+  }
+
+  const columns = ["Project", "Category", "Status", "Date", "Actions"];
+  
   const rows = projects.map((p) => [
     <div className="flex items-center gap-3" key={p.id}>
       <div className="size-8 rounded bg-surface overflow-hidden shrink-0">
@@ -68,7 +170,113 @@ function PortfolioPage() {
 
   return (
     <div className="space-y-6">
-      {/* ... PageHeader ... */}
+      <PageHeader 
+        title="Portfolio" 
+        desc="Manage your studio projects via Supabase." 
+        action={
+          <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-between sm:justify-start">
+            <div className="flex items-center bg-white/5 p-1 rounded-lg border border-white/10 mr-2">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className={`h-8 w-8 rounded-md transition-all ${viewMode === 'list' ? 'bg-white/10 text-brand shadow-sm' : 'text-muted-foreground'}`}
+                onClick={() => setViewMode('list')}
+              >
+                <List size={16} />
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className={`h-8 w-8 rounded-md transition-all ${viewMode === 'grid' ? 'bg-white/10 text-brand shadow-sm' : 'text-muted-foreground'}`}
+                onClick={() => setViewMode('grid')}
+              >
+                <LayoutGrid size={16} />
+              </Button>
+            </div>
+            <Dialog open={isOpen} onOpenChange={(v) => { setIsOpen(v); if(!v) { setEditingProject(null); setImageUrl(""); } }}>
+              <DialogTrigger asChild>
+                <Button onClick={() => { setEditingProject(null); setImageUrl(""); }} className="bg-gradient-brand text-brand-foreground shadow-glow">
+                  <Plus className="mr-2 h-4 w-4" /> Add project
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[600px] glass border-white/10 shadow-2xl overflow-y-auto max-h-[90vh]">
+                <DialogHeader>
+                  <DialogTitle className="text-2xl font-bold text-gradient">
+                    {editingProject ? "Update Project" : "Create New Project"}
+                  </DialogTitle>
+                  <DialogDescription className="text-muted-foreground">
+                    Fill in the details below to showcase your studio's work.
+                  </DialogDescription>
+                </DialogHeader>
+                <form onSubmit={handleSubmit} className="space-y-6 py-4">
+                  <div className="grid sm:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="title" className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Project Title</Label>
+                      <Input id="title" name="title" defaultValue={editingProject?.title} required className="glass border-white/5 focus:ring-brand" placeholder="e.g. Lumen Rebrand" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="category" className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Category</Label>
+                      <Input id="category" name="category" defaultValue={editingProject?.category} required className="glass border-white/5 focus:ring-brand" placeholder="e.g. Branding" />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Project Image</Label>
+                    <div className="flex flex-col gap-3 p-4 rounded-xl border border-white/10 bg-white/[0.02]">
+                      {imageUrl && (
+                        <div className="relative aspect-video rounded-lg overflow-hidden border border-white/10">
+                          <img src={imageUrl} className="w-full h-full object-cover" />
+                        </div>
+                      )}
+                      <div className="flex items-center gap-4">
+                        <Label 
+                          htmlFor="image-upload" 
+                          className="cursor-pointer inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-brand text-brand-foreground font-medium text-sm shadow-glow hover:opacity-90 transition-opacity"
+                        >
+                          <Upload size={16} /> Choose File
+                        </Label>
+                        <input 
+                          id="image-upload" 
+                          type="file" 
+                          accept="image/*" 
+                          onChange={handleFileUpload} 
+                          className="hidden" 
+                        />
+                        {uploading && (
+                          <div className="flex items-center gap-2 text-brand">
+                            <div className="size-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                            <span className="text-sm font-medium">Uploading...</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="description" className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Description</Label>
+                    <Textarea id="description" name="description" defaultValue={editingProject?.description} rows={4} className="glass border-white/5 focus:ring-brand resize-none" placeholder="Tell us more about the project goals and outcome..." />
+                  </div>
+
+                  <div className="flex items-center space-x-3 p-4 rounded-xl bg-white/[0.03] border border-white/5">
+                    <Checkbox id="featured" name="featured" defaultChecked={editingProject?.featured} className="border-white/20 data-[state=checked]:bg-brand data-[state=checked]:border-brand" />
+                    <div className="grid gap-1.5 leading-none">
+                      <Label htmlFor="featured" className="text-sm font-bold leading-none cursor-pointer">Feature on Homepage</Label>
+                      <p className="text-xs text-muted-foreground">This project will be highlighted in the "Selected Work" section.</p>
+                    </div>
+                  </div>
+
+                  <div className="pt-4 flex justify-end gap-3 border-t border-white/5">
+                    <Button type="button" variant="ghost" onClick={() => setIsOpen(false)} className="hover:bg-white/5">Cancel</Button>
+                    <Button type="submit" disabled={uploading} className="bg-gradient-brand text-brand-foreground shadow-glow px-8">
+                      {editingProject ? "Update Project" : "Create Project"}
+                    </Button>
+                  </div>
+                </form>
+              </DialogContent>
+            </Dialog>
+          </div>
+        }
+      />
       
       {loading ? (
         <div className="h-64 grid place-items-center">
@@ -114,7 +322,6 @@ function PortfolioPage() {
           )}
         </div>
       )}
-
       {/* View Details Dialog */}
       <Dialog open={!!selectedProject} onOpenChange={(v) => !v && setSelectedProject(null)}>
         <DialogContent className="glass border-white/10 max-w-md">
@@ -164,5 +371,6 @@ function PortfolioPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* Add/Edit Modal */}
+    </div>
+  );
+}

@@ -36,6 +36,12 @@ function TestimonialsPage() {
   const [selectedTestimonial, setSelectedTestimonial] = useState<any | null>(null);
   const [viewMode, setViewMode] = useState<"list" | "grid">("grid");
 
+  const handleEdit = (testimonial: any) => {
+    setEditingTestimonial(testimonial);
+    setIsOpen(true);
+    setSelectedTestimonial(null);
+  };
+
   useEffect(() => {
     fetchTestimonials();
   }, []);
@@ -49,12 +55,6 @@ function TestimonialsPage() {
     if (data) setTestimonials(data);
     setLoading(false);
   }
-
-  const handleEdit = (testimonial: any) => {
-    setEditingTestimonial(testimonial);
-    setIsOpen(true);
-    setSelectedTestimonial(null);
-  };
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -188,7 +188,6 @@ function TestimonialsPage() {
           )}
         </div>
       )}
-
       {/* View Details Dialog */}
       <Dialog open={!!selectedTestimonial} onOpenChange={(v) => !v && setSelectedTestimonial(null)}>
         <DialogContent className="glass border-white/10 max-w-md">

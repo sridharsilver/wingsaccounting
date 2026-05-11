@@ -57,6 +57,14 @@ function UsersPage() {
   const [editAvatar, setEditAvatar] = useState("");
   const [saving, setSaving] = useState(false);
 
+  const handleStartEdit = (user: any) => {
+    setEditingUser(user);
+    setEditName(user.full_name || "");
+    setEditPhone(user.phone || "");
+    setEditAvatar(user.avatar_url || "");
+    setSelectedUser(null);
+  };
+
   // Crop State
   const [imageToCrop, setImageToCrop] = useState<string | null>(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
@@ -81,12 +89,11 @@ function UsersPage() {
 
   const isSuperAdmin = currentUser?.user_metadata?.full_name === "Sridhar Silver";
 
-  const handleStartEdit = (user: any) => {
+  const handleStartEditAction = (user: any) => {
     setEditingUser(user);
     setEditName(user.full_name || "");
     setEditPhone(user.phone || "");
     setEditAvatar(user.avatar_url || "");
-    setSelectedUser(null);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -244,52 +251,6 @@ function UsersPage() {
         </div>
       )}
 
-      {/* View Details Dialog */}
-      <Dialog open={!!selectedUser} onOpenChange={(v) => !v && setSelectedUser(null)}>
-        <DialogContent className="glass border-white/10 max-w-sm">
-          <DialogHeader className="items-center text-center">
-            <div className="size-24 rounded-full bg-gradient-brand flex items-center justify-center text-3xl font-bold text-brand-foreground overflow-hidden border-4 border-white/5 shadow-glow mb-4">
-              {selectedUser?.avatar_url ? (
-                <img src={selectedUser.avatar_url} alt="" className="w-full h-full object-cover" />
-              ) : (
-                (selectedUser?.full_name?.[0] || selectedUser?.email?.[0] || "?").toUpperCase()
-              )}
-            </div>
-            <DialogTitle className="text-xl">{selectedUser?.full_name || "New Admin"}</DialogTitle>
-            <div className="text-xs text-muted-foreground">{selectedUser?.email}</div>
-          </DialogHeader>
-          
-          <div className="grid grid-cols-2 gap-4 py-4 border-y border-white/5 my-4 text-center">
-            <div>
-              <div className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Role</div>
-              <StatusPill tone={selectedUser?.full_name === "Sridhar Silver" ? "amber" : "blue"}>
-                {selectedUser?.full_name === "Sridhar Silver" ? "Super Admin" : "Admin"}
-              </StatusPill>
-            </div>
-            <div>
-              <div className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Joined</div>
-              <div className="text-xs font-medium">{selectedUser && new Date(selectedUser.created_at).toLocaleDateString()}</div>
-            </div>
-          </div>
-
-          <DialogFooter className="flex-col sm:flex-col gap-2">
-            {isSuperAdmin && (
-              <Button className="w-full bg-gradient-brand text-brand-foreground shadow-glow gap-2" onClick={() => handleStartEdit(selectedUser)}>
-                <Pencil size={16} /> Edit User
-              </Button>
-            )}
-            <div className="flex gap-2">
-              <Button variant="outline" className="flex-1 border-white/10 hover:bg-white/5" onClick={() => setSelectedUser(null)}>Close</Button>
-              <a href="https://supabase.com/dashboard/project/_/auth/users" target="_blank" rel="noopener noreferrer" className="flex-1">
-                <Button variant="ghost" className="w-full text-muted-foreground hover:text-foreground gap-2">
-                  <ExternalLink size={16} /> Dashboard
-                </Button>
-              </a>
-            </div>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
       {/* Edit User Dialog */}
       <Dialog open={!!editingUser} onOpenChange={(v) => !v && !saving && setEditingUser(null)}>
         <DialogContent className="glass border-white/10 max-w-md">
@@ -387,6 +348,51 @@ function UsersPage() {
           </div>
         </div>
       </AdminCard>
+      {/* View Details Dialog */}
+      <Dialog open={!!selectedUser} onOpenChange={(v) => !v && setSelectedUser(null)}>
+        <DialogContent className="glass border-white/10 max-w-sm">
+          <DialogHeader className="items-center text-center">
+            <div className="size-24 rounded-full bg-gradient-brand flex items-center justify-center text-3xl font-bold text-brand-foreground overflow-hidden border-4 border-white/5 shadow-glow mb-4">
+              {selectedUser?.avatar_url ? (
+                <img src={selectedUser.avatar_url} alt="" className="w-full h-full object-cover" />
+              ) : (
+                (selectedUser?.full_name?.[0] || selectedUser?.email?.[0] || "?").toUpperCase()
+              )}
+            </div>
+            <DialogTitle className="text-xl">{selectedUser?.full_name || "New Admin"}</DialogTitle>
+            <div className="text-xs text-muted-foreground">{selectedUser?.email}</div>
+          </DialogHeader>
+          
+          <div className="grid grid-cols-2 gap-4 py-4 border-y border-white/5 my-4 text-center">
+            <div>
+              <div className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Role</div>
+              <StatusPill tone={selectedUser?.full_name === "Sridhar Silver" ? "amber" : "blue"}>
+                {selectedUser?.full_name === "Sridhar Silver" ? "Super Admin" : "Admin"}
+              </StatusPill>
+            </div>
+            <div>
+              <div className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Joined</div>
+              <div className="text-xs font-medium">{selectedUser && new Date(selectedUser.created_at).toLocaleDateString()}</div>
+            </div>
+          </div>
+
+          <DialogFooter className="flex-col sm:flex-col gap-2">
+            {isSuperAdmin && (
+              <Button className="w-full bg-gradient-brand text-brand-foreground shadow-glow gap-2" onClick={() => handleStartEdit(selectedUser)}>
+                <Pencil size={16} /> Edit User
+              </Button>
+            )}
+            <div className="flex gap-2">
+              <Button variant="outline" className="flex-1 border-white/10 hover:bg-white/5" onClick={() => setSelectedUser(null)}>Close</Button>
+              <a href="https://supabase.com/dashboard/project/_/auth/users" target="_blank" rel="noopener noreferrer" className="flex-1">
+                <Button variant="ghost" className="w-full text-muted-foreground hover:text-foreground gap-2">
+                  <ExternalLink size={16} /> Dashboard
+                </Button>
+              </a>
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

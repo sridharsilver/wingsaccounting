@@ -34,8 +34,6 @@ function BlogPage() {
   const [uploading, setUploading] = useState(false);
   const [viewMode, setViewMode] = useState<"list" | "grid">("grid");
 
-  // ... rest of fetchPosts ...
-
   const handleEdit = (post: any) => {
     setEditingPost(post);
     setImageUrl(post.image_url);
@@ -43,6 +41,76 @@ function BlogPage() {
     setSelectedPost(null);
   };
 
+  useEffect(() => {
+    fetchPosts();
+  }, []);
+
+  async function fetchPosts() {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("blog")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (data) setPosts(data);
+    setLoading(false);
+  }
+
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("File is too large. Maximum size is 2MB.");
+      return;
+    }
+
+    setUploading(true);
+    const filePath = `blog/${Math.random()}.${file.name.split('.').pop()}`;
+    const { data, error } = await supabase.storage.from("images").upload(filePath, file);
+    if (!error) {
+      const { data: { publicUrl } } = supabase.storage.from("images").getPublicUrl(filePath);
+      setImageUrl(publicUrl);
+    }
+    setUploading(false);
+  }
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const payload = {
+      title: formData.get("title"),
+      excerpt: formData.get("excerpt"),
+      content: formData.get("content"),
+      category: formData.get("category"),
+      author: "Admin",
+      image_url: imageUrl,
+       status: "published",
+      is_featured: formData.get("is_featured") === "on",
+    };
+
+    let error;
+    if (editingPost) {
+      const { error: err } = await supabase.from("blog").update(payload).eq("id", editingPost.id);
+      error = err;
+    } else {
+      const { error: err } = await supabase.from("blog").insert([payload]);
+      error = err;
+    }
+
+    if (!error) {
+      toast.success("Post saved");
+      setIsOpen(false);
+      fetchPosts();
+    }
+  }
+
+  async function handleDelete(id: string) {
+    if (!confirm("Delete post?")) return;
+    await supabase.from("blog").delete().eq("id", id);
+    fetchPosts();
+  }
+
+  const columns = ["Title", "Category", "Status", "Home", "Date", "Actions"];
   const rows = posts.map(p => [
     <div className="font-medium" key={p.id}>{p.title}</div>,
     p.category,
@@ -61,8 +129,66 @@ function BlogPage() {
 
   return (
     <div className="space-y-6">
-      {/* ... PageHeader ... */}
-      
+      <PageHeader 
+        title="Blog Posts" 
+        desc="Write and manage studio updates." 
+        action={
+          <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-between sm:justify-start">
+            <div className="flex items-center bg-white/5 p-1 rounded-lg border border-white/10 mr-2">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className={`h-8 w-8 rounded-md transition-all ${viewMode === 'list' ? 'bg-white/10 text-brand shadow-sm' : 'text-muted-foreground'}`}
+                onClick={() => setViewMode('list')}
+              >
+                <List size={16} />
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className={`h-8 w-8 rounded-md transition-all ${viewMode === 'grid' ? 'bg-white/10 text-brand shadow-sm' : 'text-muted-foreground'}`}
+                onClick={() => setViewMode('grid')}
+              >
+                <LayoutGrid size={16} />
+              </Button>
+            </div>
+            <Dialog open={isOpen} onOpenChange={setIsOpen}>
+              <DialogTrigger asChild>
+                <Button onClick={() => { setEditingPost(null); setImageUrl(""); }} className="bg-gradient-brand text-brand-foreground shadow-glow"><Plus className="mr-2 h-4 w-4" /> New Post</Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[500px] glass">
+                <DialogHeader><DialogTitle>{editingPost ? "Edit" : "New"} Post</DialogTitle></DialogHeader>
+                <form onSubmit={handleSubmit} className="space-y-4 py-4">
+                  <div className="space-y-2"><Label>Title</Label><Input name="title" defaultValue={editingPost?.title} required className="glass" /></div>
+                  <div className="space-y-2"><Label>Category</Label><Input name="category" defaultValue={editingPost?.category} required className="glass" /></div>
+                  <div className="space-y-2">
+                    <Label>Image</Label>
+                    <Input type="file" onChange={handleFileUpload} className="glass" />
+                    {imageUrl && <img src={imageUrl} className="h-20 w-32 object-cover rounded border border-white/10" />}
+                  </div>
+                  <div className="space-y-2"><Label>Excerpt</Label><Input name="excerpt" defaultValue={editingPost?.excerpt} className="glass" /></div>
+                  <div className="space-y-2"><Label>Content</Label><Textarea name="content" defaultValue={editingPost?.content} className="h-32 glass" /></div>
+                  <div className="flex items-center space-x-2">
+                    <input 
+                      type="checkbox" 
+                      name="is_featured" 
+                      id="is_featured"
+                      defaultChecked={editingPost?.is_featured}
+                      className="w-4 h-4 rounded border-white/20 bg-white/5 text-brand focus:ring-brand"
+                    />
+                    <Label htmlFor="is_featured" className="cursor-pointer">Featured on Home Page</Label>
+                  </div>
+                  <div className="pt-4 flex justify-end gap-2">
+                    <Button type="button" variant="ghost" onClick={() => setIsOpen(false)}>Cancel</Button>
+                    <Button type="submit" disabled={uploading} className="bg-gradient-brand text-brand-foreground">Save Post</Button>
+                  </div>
+                </form>
+              </DialogContent>
+            </Dialog>
+          </div>
+        }
+      />
+
       {loading ? (
         <div className="h-64 grid place-items-center">
           <div className="size-8 border-4 border-brand border-t-transparent rounded-full animate-spin" />
@@ -100,9 +226,14 @@ function BlogPage() {
               </div>
             </AdminCard>
           ))}
+          {posts.length === 0 && (
+            <div className="col-span-full h-64 glass rounded-3xl border border-dashed border-white/10 flex flex-col items-center justify-center text-muted-foreground">
+              <LayoutGrid size={48} className="mb-4 opacity-20" />
+              <p>No posts found. Write your first post!</p>
+            </div>
+          )}
         </div>
       )}
-
       {/* View Details Dialog */}
       <Dialog open={!!selectedPost} onOpenChange={(v) => !v && setSelectedPost(null)}>
         <DialogContent className="glass border-white/10 max-w-md">
@@ -155,5 +286,6 @@ function BlogPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* Add/Edit Modal */}
+    </div>
+  );
+}

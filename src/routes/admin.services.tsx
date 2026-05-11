@@ -32,6 +32,12 @@ function ServicesPage() {
   const [selectedService, setSelectedService] = useState<any | null>(null);
   const [viewMode, setViewMode] = useState<"list" | "grid">("grid");
 
+  const handleEdit = (service: any) => {
+    setEditingService(service);
+    setIsOpen(true);
+    setSelectedService(null);
+  };
+
   useEffect(() => {
     fetchServices();
   }, []);
@@ -45,12 +51,6 @@ function ServicesPage() {
     if (data) setServices(data);
     setLoading(false);
   }
-
-  const handleEdit = (service: any) => {
-    setEditingService(service);
-    setIsOpen(true);
-    setSelectedService(null);
-  };
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -183,7 +183,6 @@ function ServicesPage() {
           )}
         </div>
       )}
-
       {/* View Details Dialog */}
       <Dialog open={!!selectedService} onOpenChange={(v) => !v && setSelectedService(null)}>
         <DialogContent className="glass border-white/10 max-w-md">
