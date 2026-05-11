@@ -9,12 +9,13 @@ import {
   useRouterState,
   useNavigate
 } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Capacitor } from "@capacitor/core";
 import { Toaster } from "@/components/ui/sonner";
 import { SplashScreen } from "@/components/ui/SplashScreen";
-import { useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { ChatBot } from "@/components/chat/ChatBot";
+import { WhatsAppButton } from "@/components/chat/WhatsAppButton";
 
 import appCss from "../styles.css?url";
 
@@ -80,16 +81,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Wings Graphics — Premium Printing, Branding & Web Design" },
-      { name: "description", content: "Wings Graphics delivers commercial printing, graphic design, branding and modern web design for ambitious brands." },
-      { name: "author", content: "Wings Graphics" },
-      { property: "og:title", content: "Wings Graphics — Premium Printing, Branding & Web Design" },
-      { property: "og:description", content: "Wings Graphics delivers commercial printing, graphic design, branding and modern web design for ambitious brands." },
+      { title: "Wings Design Studio — Premium Printing, Branding & Web Design" },
+      { name: "description", content: "Wings Design Studio delivers commercial printing, graphic design, branding and modern web design for ambitious brands." },
+      { name: "author", content: "Wings Design Studio" },
+      { property: "og:title", content: "Wings Design Studio — Premium Printing, Branding & Web Design" },
+      { property: "og:description", content: "Wings Design Studio delivers commercial printing, graphic design, branding and modern web design for ambitious brands." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
-      { name: "twitter:title", content: "Wings Graphics — Premium Printing, Branding & Web Design" },
-      { name: "twitter:description", content: "Wings Graphics delivers commercial printing, graphic design, branding and modern web design for ambitious brands." },
+      { name: "twitter:site", content: "@WingsDesign" },
+      { name: "twitter:title", content: "Wings Design Studio — Premium Printing, Branding & Web Design" },
+      { name: "twitter:description", content: "Wings Design Studio delivers commercial printing, graphic design, branding and modern web design for ambitious brands." },
       { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/b8cb60f6-b5d9-4c40-a0d4-b29c693523c4/id-preview-f9453e97--b2dd65e2-5a5a-4884-9255-a0ff02aa1e00.lovable.app-1778338578672.png" },
       { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/b8cb60f6-b5d9-4c40-a0d4-b29c693523c4/id-preview-f9453e97--b2dd65e2-5a5a-4884-9255-a0ff02aa1e00.lovable.app-1778338578672.png" },
     ],
@@ -126,9 +127,8 @@ function RootComponent() {
   const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
-    // If running as a native app (Android/APK), redirect home page to login or admin
-    // Wait for splash screen to finish before redirecting
-    if (!showSplash && Capacitor.isNativePlatform() && pathname === "/") {
+    // If running as a native app (Android/APK), handle redirects while splash is showing
+    if (Capacitor.isNativePlatform() && pathname === "/") {
       supabase.auth.getSession().then(({ data: { session } }) => {
         if (session) {
           navigate({ to: "/admin" });
@@ -137,12 +137,14 @@ function RootComponent() {
         }
       });
     }
-  }, [pathname, navigate, showSplash]);
+  }, [pathname, navigate]);
 
   return (
     <QueryClientProvider client={queryClient}>
       {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
       <Outlet />
+      <ChatBot />
+      <WhatsAppButton />
       <Toaster />
     </QueryClientProvider>
   );

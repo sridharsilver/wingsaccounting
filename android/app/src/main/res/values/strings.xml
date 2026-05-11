@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Wings Design Studio</string>
-    <string name="title_activity_main">Wings Design Studio</string>
+    <string name="app_name">Wings Admin</string>
+    <string name="title_activity_main">Wings Admin</string>
     <string name="package_name">com.wingsgraphics.studio</string>
     <string name="custom_url_scheme">com.wingsgraphics.studio</string>
 </resources>

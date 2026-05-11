@@ -98,7 +98,28 @@ export function AdminShell() {
         await LocalNotifications.createChannel({
           id: 'enquiries',
           name: 'New Enquiries',
+          description: 'Notifications for new business enquiries',
           importance: 5,
+          visibility: 1,
+          vibration: true,
+        });
+
+        // Also create it for PushNotifications (Android uses the same channels)
+        if (Capacitor.getPlatform() === 'android') {
+          await PushNotifications.createChannel({
+            id: 'enquiries',
+            name: 'New Enquiries',
+            description: 'Notifications for new business enquiries',
+            importance: 5,
+            visibility: 1,
+            vibration: true,
+          });
+        }
+
+        await LocalNotifications.removeAllListeners();
+        LocalNotifications.addListener('localNotificationActionPerformed', (notification) => {
+          console.log('Local notification action performed:', notification);
+          navigate({ to: '/admin/enquiries' });
         });
       } catch (err) {
         console.error("Local notifications error", err);
@@ -148,7 +169,15 @@ export function AdminShell() {
 
         PushNotifications.addListener('pushNotificationActionPerformed', (notification) => {
           console.log('Push notification action performed:', notification);
+          navigate({ to: '/admin/enquiries' });
         });
+
+        // Handle initial notification if the app was closed
+        const delivered = await PushNotifications.getDeliveredNotifications();
+        if (delivered.notifications.length > 0) {
+          console.log('Detected pending notifications on startup');
+          // Optional: handle them if needed
+        }
 
         await PushNotifications.register();
       } catch (err) {
@@ -175,6 +204,9 @@ export function AdminShell() {
                 body: `${payload.new.name} is interested in ${payload.new.subject || 'your services'}`,
                 id: Math.floor(Date.now() / 1000),
                 channelId: 'enquiries',
+                smallIcon: 'ic_stat_notification',
+                largeIcon: 'ic_launcher',
+                iconColor: '#9b4dff',
               }
             ]
           }).catch(err => console.error("Error scheduling notification", err));
