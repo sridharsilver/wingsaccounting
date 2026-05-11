@@ -6,6 +6,7 @@ import { useTheme } from "@/hooks/use-theme";
 import { Logo } from "../ui/Logo";
 import { supabase } from "@/lib/supabase";
 import { LocalNotifications } from '@capacitor/local-notifications';
+import { PushNotifications } from '@capacitor/push-notifications';
 
 const NAV_GROUPS = [
   {
@@ -103,7 +104,34 @@ export function AdminShell() {
         console.error("Local notifications error", err);
       }
     };
+    const initPushNotifications = async () => {
+      try {
+        let permStatus = await PushNotifications.checkPermissions();
+        if (permStatus.receive === 'prompt') {
+          permStatus = await PushNotifications.requestPermissions();
+        }
+        if (permStatus.receive !== 'granted') return;
+
+        await PushNotifications.register();
+
+        PushNotifications.addListener('registration', (token) => {
+          console.log('Push registration success, token: ' + token.value);
+        });
+
+        PushNotifications.addListener('registrationError', (err) => {
+          console.error('Push registration error: ', err.error);
+        });
+
+        PushNotifications.addListener('pushNotificationReceived', (notification) => {
+          console.log('Push received: ', notification);
+        });
+      } catch (err) {
+        console.error("Push notifications error", err);
+      }
+    };
+
     initNotifications();
+    initPushNotifications();
 
     fetchNewEnquiries();
 
