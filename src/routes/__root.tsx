@@ -14,6 +14,7 @@ import { Capacitor } from "@capacitor/core";
 import { Toaster } from "@/components/ui/sonner";
 import { SplashScreen } from "@/components/ui/SplashScreen";
 import { useState } from "react";
+import { supabase } from "@/lib/supabase";
 
 import appCss from "../styles.css?url";
 
@@ -125,10 +126,16 @@ function RootComponent() {
   const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
-    // If running as a native app (Android/APK), redirect home page to login
+    // If running as a native app (Android/APK), redirect home page to login or admin
     // Wait for splash screen to finish before redirecting
     if (!showSplash && Capacitor.isNativePlatform() && pathname === "/") {
-      navigate({ to: "/login" });
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) {
+          navigate({ to: "/admin" });
+        } else {
+          navigate({ to: "/login" });
+        }
+      });
     }
   }, [pathname, navigate, showSplash]);
 

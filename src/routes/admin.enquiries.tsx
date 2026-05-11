@@ -47,8 +47,18 @@ function EnquiriesPage() {
         if (permissions.display !== 'granted') {
           await LocalNotifications.requestPermissions();
         }
+        
+        // Create a channel for Android 8+
+        await LocalNotifications.createChannel({
+          id: 'enquiries',
+          name: 'New Enquiries',
+          description: 'Notifications for new customer enquiries',
+          importance: 5,
+          visibility: 1,
+          vibration: true,
+        });
       } catch (err) {
-        console.error("Local notifications not supported or error requesting permissions", err);
+        console.error("Local notifications error", err);
       }
     };
     initNotifications();
@@ -68,8 +78,9 @@ function EnquiriesPage() {
             notifications: [
               {
                 title: "New Enquiry Received!",
-                body: `${payload.new.full_name} is interested in ${payload.new.service_type || 'your services'}`,
-                id: Date.now(),
+                body: `${payload.new.name} is interested in ${payload.new.subject || 'your services'}`,
+                id: Math.floor(Date.now() / 1000),
+                channelId: 'enquiries',
                 schedule: { at: new Date(Date.now() + 1000) },
                 sound: 'default',
               }

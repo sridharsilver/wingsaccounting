@@ -5,6 +5,7 @@ import { ThemeToggle } from "../ui/ThemeToggle";
 import { useTheme } from "@/hooks/use-theme";
 import { Logo } from "../ui/Logo";
 import { supabase } from "@/lib/supabase";
+import { LocalNotifications } from '@capacitor/local-notifications';
 
 const NAV_GROUPS = [
   {
@@ -87,10 +88,45 @@ export function AdminShell() {
   }, [showNotifications]);
 
   useEffect(() => {
+    const initNotifications = async () => {
+      try {
+        const permissions = await LocalNotifications.checkPermissions();
+        if (permissions.display !== 'granted') {
+          await LocalNotifications.requestPermissions();
+        }
+        await LocalNotifications.createChannel({
+          id: 'enquiries',
+          name: 'New Enquiries',
+          importance: 5,
+        });
+      } catch (err) {
+        console.error("Local notifications error", err);
+      }
+    };
+    initNotifications();
+
     fetchNewEnquiries();
 
     const channel = supabase
-      .channel('public:enquiries')
+      .channel('public:enquiries_global')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'enquiries' },
+        (payload) => {
+          console.log("Global new enquiry:", payload);
+          LocalNotifications.schedule({
+            notifications: [
+              {
+                title: "New Enquiry Received!",
+                body: `${payload.new.name} is interested in ${payload.new.subject || 'your services'}`,
+                id: Math.floor(Date.now() / 1000),
+                channelId: 'enquiries',
+              }
+            ]
+          }).catch(err => console.error("Error scheduling notification", err));
+          fetchNewEnquiries();
+        }
+      )
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'enquiries' },
