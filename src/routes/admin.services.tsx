@@ -29,6 +29,7 @@ function ServicesPage() {
   const [loading, setLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
   const [editingService, setEditingService] = useState<any>(null);
+  const [selectedService, setSelectedService] = useState<any | null>(null);
   const [viewMode, setViewMode] = useState<"list" | "grid">("grid");
 
   useEffect(() => {
@@ -44,6 +45,12 @@ function ServicesPage() {
     if (data) setServices(data);
     setLoading(false);
   }
+
+  const handleEdit = (service: any) => {
+    setEditingService(service);
+    setIsOpen(true);
+    setSelectedService(null);
+  };
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -86,8 +93,8 @@ function ServicesPage() {
       {s.status === "live" ? "Live" : "Draft"}
     </StatusPill>,
     s.price,
-    <div className="flex gap-1" key={`a-${s.id}`}>
-      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { setEditingService(s); setIsOpen(true); }}><Edit2 size={14} /></Button>
+    <div className="flex gap-1" key={`a-${s.id}`} onClick={(e) => e.stopPropagation()}>
+      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEdit(s)}><Edit2 size={14} /></Button>
       <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDelete(s.id)}><Trash2 size={14} /></Button>
     </div>
   ]);
@@ -144,11 +151,15 @@ function ServicesPage() {
           <div className="size-8 border-4 border-brand border-t-transparent rounded-full animate-spin" />
         </div>
       ) : viewMode === "list" ? (
-        <DataTable columns={columns} rows={rows} />
+        <DataTable columns={columns} rows={rows} onRowClick={(idx) => setSelectedService(services[idx])} />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {services.map((s) => (
-            <AdminCard key={s.id} className="group overflow-hidden flex flex-col h-full border border-white/5 hover:border-brand/30 transition-all duration-300">
+            <AdminCard 
+              key={s.id} 
+              className="group overflow-hidden flex flex-col h-full border border-white/5 hover:border-brand/30 transition-all duration-300 cursor-pointer"
+              onClick={() => setSelectedService(s)}
+            >
               <div className="p-6 flex-1 flex flex-col bg-gradient-to-br from-white/[0.03] to-transparent">
                 <div className="flex items-start justify-between mb-4">
                   <div className="text-[10px] uppercase tracking-widest text-brand font-bold">{s.category}</div>
@@ -160,10 +171,6 @@ function ServicesPage() {
                 <p className="text-sm text-muted-foreground line-clamp-3 mb-6">{s.description || "No description provided."}</p>
                 <div className="mt-auto flex items-center justify-between">
                   <div className="font-bold text-lg text-brand-purple">{s.price || "Contact for Price"}</div>
-                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-white/10" onClick={() => { setEditingService(s); setIsOpen(true); }}><Edit2 size={14} /></Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10" onClick={() => handleDelete(s.id)}><Trash2 size={14} /></Button>
-                  </div>
                 </div>
               </div>
             </AdminCard>
@@ -176,6 +183,56 @@ function ServicesPage() {
           )}
         </div>
       )}
+
+      {/* View Details Dialog */}
+      <Dialog open={!!selectedService} onOpenChange={(v) => !v && setSelectedService(null)}>
+        <DialogContent className="glass border-white/10 max-w-md">
+          <DialogHeader>
+            <div className="size-12 rounded-xl bg-gradient-brand text-brand-foreground grid place-items-center mb-4 shadow-glow">
+              <LayoutGrid size={24} />
+            </div>
+            <DialogTitle className="text-2xl font-bold">{selectedService?.title}</DialogTitle>
+            <div className="text-brand font-bold uppercase tracking-widest text-[10px] mt-1">{selectedService?.category}</div>
+          </DialogHeader>
+          
+          <div className="py-4 space-y-4">
+            <div className="space-y-1">
+              <div className="text-[10px] uppercase font-bold text-muted-foreground">Service Description</div>
+              <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap italic">
+                "{selectedService?.description || "No description provided."}"
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/5">
+              <div>
+                <div className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Pricing</div>
+                <div className="text-lg font-bold text-brand-purple">{selectedService?.price || "Contact"}</div>
+              </div>
+              <div>
+                <div className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Status</div>
+                <StatusPill tone={selectedService?.status === "live" ? "green" : "amber"}>
+                  {selectedService?.status === "live" ? "Live" : "Draft"}
+                </StatusPill>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="flex-col sm:flex-col gap-2 pt-4">
+            <Button className="w-full bg-gradient-brand text-brand-foreground shadow-glow gap-2" onClick={() => handleEdit(selectedService)}>
+              <Edit2 size={16} /> Edit Service
+            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" className="flex-1 border-white/10 hover:bg-white/5" onClick={() => setSelectedService(null)}>Close</Button>
+              <Button variant="ghost" className="flex-1 text-destructive hover:bg-destructive/10" onClick={() => {
+                handleDelete(selectedService.id);
+                setSelectedService(null);
+              }}>
+                <Trash2 size={16} /> Delete
+              </Button>
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -45,6 +45,7 @@ function TeamManagementPage() {
   const [team, setTeam] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingMember, setEditingMember] = useState<any | null>(null);
+  const [selectedMember, setSelectedMember] = useState<any | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [viewMode, setViewMode] = useState<"list" | "grid">("grid");
@@ -78,6 +79,12 @@ function TeamManagementPage() {
     if (data) setTeam(data);
     setLoading(false);
   }
+
+  const handleEdit = (member: any) => {
+    setEditingMember(member);
+    setFormData({ name: member.name, role: member.role, image_url: member.image_url || "", order_index: member.order_index, is_active: member.is_active });
+    setSelectedMember(null);
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -180,11 +187,8 @@ function TeamManagementPage() {
     </div>,
     <span className="text-muted-foreground" key={`r-${m.id}`}>{m.role}</span>,
     <span className="font-mono text-xs text-muted-foreground" key={`o-${m.id}`}>#{m.order_index}</span>,
-    <div className="flex gap-1" key={`a-${m.id}`}>
-      <Button variant="ghost" size="icon" className="h-8 w-8 text-brand" onClick={() => {
-        setEditingMember(m);
-        setFormData({ name: m.name, role: m.role, image_url: m.image_url || "", order_index: m.order_index, is_active: m.is_active });
-      }}>
+    <div className="flex gap-1" key={`a-${m.id}`} onClick={(e) => e.stopPropagation()}>
+      <Button variant="ghost" size="icon" className="h-8 w-8 text-brand" onClick={() => handleEdit(m)}>
         <Pencil size={14} />
       </Button>
       <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDelete(m.id)}>
@@ -233,44 +237,25 @@ function TeamManagementPage() {
           <div className="size-8 border-4 border-brand border-t-transparent rounded-full animate-spin" />
         </div>
       ) : viewMode === "list" ? (
-        <DataTable columns={columns} rows={rows} />
+        <DataTable columns={columns} rows={rows} onRowClick={(idx) => setSelectedMember(team[idx])} />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {team.map((m) => (
-            <AdminCard key={m.id} className="group overflow-hidden flex flex-col h-full border border-white/5 hover:border-brand/30 transition-all duration-300">
+            <AdminCard 
+              key={m.id} 
+              className="group overflow-hidden flex flex-col h-full border border-white/5 hover:border-brand/30 transition-all duration-300 cursor-pointer"
+              onClick={() => setSelectedMember(m)}
+            >
               <div className="aspect-[16/9] sm:aspect-square relative overflow-hidden bg-surface-elevated">
                 {m.image_url ? (
                   <img src={m.image_url} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-muted-foreground"><User size={48} /></div>
                 )}
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all duration-500 flex items-center justify-center gap-4 backdrop-blur-[2px]">
-                  <Button 
-                    size="icon" 
-                    className="size-12 rounded-full bg-white text-black hover:bg-brand hover:text-brand-foreground transition-all duration-300 shadow-2xl scale-90 group-hover:scale-100"
-                    onClick={() => {
-                      setEditingMember(m);
-                      setFormData({ name: m.name, role: m.role, image_url: m.image_url || "", order_index: m.order_index, is_active: m.is_active });
-                    }}
-                  >
-                    <Pencil size={20} />
-                  </Button>
-                  <Button 
-                    size="icon" 
-                    variant="destructive"
-                    className="size-12 rounded-full shadow-2xl scale-90 group-hover:scale-100 transition-all duration-300 delay-75"
-                    onClick={() => handleDelete(m.id)}
-                  >
-                    <Trash2 size={20} />
-                  </Button>
-                </div>
                 <div className="absolute top-3 right-3 shadow-[0_8px_30px_rgb(0,0,0,0.5)] bg-black/40 backdrop-blur-md rounded-full border border-white/10 px-2 py-0.5">
                   <div className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider ${m.is_active ? 'text-emerald-400' : 'text-muted-foreground'}`}>
                     {m.is_active ? <><Eye size={10} /> Visible</> : <><EyeOff size={10} /> Hidden</>}
                   </div>
-                </div>
-                <div className="absolute top-3 left-3 bg-black/40 backdrop-blur-md border border-white/10 size-8 rounded-full flex items-center justify-center font-mono text-[10px] font-bold">
-                  #{m.order_index}
                 </div>
               </div>
               <div className="p-4 flex-1 flex flex-col text-center">
@@ -287,6 +272,51 @@ function TeamManagementPage() {
           )}
         </div>
       )}
+
+      {/* View Details Dialog */}
+      <Dialog open={!!selectedMember} onOpenChange={(v) => !v && setSelectedMember(null)}>
+        <DialogContent className="glass border-white/10 max-w-sm">
+          <DialogHeader className="items-center text-center">
+            <div className="size-24 rounded-2xl bg-surface-elevated overflow-hidden border border-white/10 mb-4 shadow-glow">
+              {selectedMember?.image_url ? (
+                <img src={selectedMember.image_url} alt="" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-muted-foreground"><User size={32} /></div>
+              )}
+            </div>
+            <DialogTitle className="text-xl">{selectedMember?.name}</DialogTitle>
+            <div className="text-brand font-medium uppercase tracking-widest text-[10px] mt-1">{selectedMember?.role}</div>
+          </DialogHeader>
+          
+          <div className="grid grid-cols-2 gap-4 py-4 border-y border-white/5 my-4 text-center">
+            <div>
+              <div className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Status</div>
+              <div className={`text-xs font-bold ${selectedMember?.is_active ? 'text-emerald-500' : 'text-muted-foreground'}`}>
+                {selectedMember?.is_active ? "Visible on site" : "Hidden"}
+              </div>
+            </div>
+            <div>
+              <div className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Display Order</div>
+              <div className="text-xs font-mono font-bold">#{selectedMember?.order_index}</div>
+            </div>
+          </div>
+
+          <DialogFooter className="flex-col sm:flex-col gap-2">
+            <Button className="w-full bg-gradient-brand text-brand-foreground shadow-glow gap-2" onClick={() => handleEdit(selectedMember)}>
+              <Pencil size={16} /> Edit Profile
+            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" className="flex-1 border-white/10 hover:bg-white/5" onClick={() => setSelectedMember(null)}>Close</Button>
+              <Button variant="ghost" className="flex-1 text-destructive hover:bg-destructive/10" onClick={() => {
+                handleDelete(selectedMember.id);
+                setSelectedMember(null);
+              }}>
+                <Trash2 size={16} /> Delete
+              </Button>
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Add/Edit Modal */}
       <Dialog open={isAddModalOpen || !!editingMember} onOpenChange={(v) => !v && (setIsAddModalOpen(false), setEditingMember(null))}>

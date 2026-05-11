@@ -51,6 +51,7 @@ function UsersPage() {
   
   // Edit State
   const [editingUser, setEditingUser] = useState<any | null>(null);
+  const [selectedUser, setSelectedUser] = useState<any | null>(null);
   const [editName, setEditName] = useState("");
   const [editPhone, setEditPhone] = useState("");
   const [editAvatar, setEditAvatar] = useState("");
@@ -85,6 +86,7 @@ function UsersPage() {
     setEditName(user.full_name || "");
     setEditPhone(user.phone || "");
     setEditAvatar(user.avatar_url || "");
+    setSelectedUser(null);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -149,7 +151,7 @@ function UsersPage() {
       {p.full_name === "Sridhar Silver" ? "Super Admin" : "Admin"}
     </StatusPill>,
     new Date(p.created_at).toLocaleDateString(),
-    <div className="flex gap-1" key={`a-${p.id}`}>
+    <div className="flex gap-1" key={`a-${p.id}`} onClick={(e) => e.stopPropagation()}>
       {isSuperAdmin && (
         <Button 
           variant="ghost" 
@@ -208,11 +210,15 @@ function UsersPage() {
           <div className="size-8 border-4 border-brand border-t-transparent rounded-full animate-spin" />
         </div>
       ) : viewMode === "list" ? (
-        <DataTable columns={columns} rows={rows} />
+        <DataTable columns={columns} rows={rows} onRowClick={(idx) => setSelectedUser(profiles[idx])} />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {profiles.map((p) => (
-            <AdminCard key={p.id} className="group overflow-hidden flex flex-col h-full border border-white/5 hover:border-brand/30 transition-all duration-300">
+            <AdminCard 
+              key={p.id} 
+              className="group overflow-hidden flex flex-col h-full border border-white/5 hover:border-brand/30 transition-all duration-300 cursor-pointer"
+              onClick={() => setSelectedUser(p)}
+            >
               <div className="p-6 flex-1 flex flex-col items-center text-center">
                 <div className="size-20 rounded-full bg-gradient-brand flex items-center justify-center text-2xl font-bold text-brand-foreground overflow-hidden border-4 border-white/5 shadow-glow mb-4">
                   {p.avatar_url ? (
@@ -226,23 +232,6 @@ function UsersPage() {
                 <StatusPill tone={p.full_name === "Sridhar Silver" ? "amber" : "blue"}>
                   {p.full_name === "Sridhar Silver" ? "Super Admin" : "Admin"}
                 </StatusPill>
-                <div className="mt-auto pt-6 flex justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  {isSuperAdmin && (
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="h-8 w-8 text-brand hover:bg-brand/10" 
-                      onClick={() => handleStartEdit(p)}
-                    >
-                      <Pencil size={14} />
-                    </Button>
-                  )}
-                  <a href="https://supabase.com/dashboard/project/_/auth/users" target="_blank" rel="noopener noreferrer">
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
-                      <ExternalLink size={14} />
-                    </Button>
-                  </a>
-                </div>
               </div>
             </AdminCard>
           ))}
@@ -254,6 +243,52 @@ function UsersPage() {
           )}
         </div>
       )}
+
+      {/* View Details Dialog */}
+      <Dialog open={!!selectedUser} onOpenChange={(v) => !v && setSelectedUser(null)}>
+        <DialogContent className="glass border-white/10 max-w-sm">
+          <DialogHeader className="items-center text-center">
+            <div className="size-24 rounded-full bg-gradient-brand flex items-center justify-center text-3xl font-bold text-brand-foreground overflow-hidden border-4 border-white/5 shadow-glow mb-4">
+              {selectedUser?.avatar_url ? (
+                <img src={selectedUser.avatar_url} alt="" className="w-full h-full object-cover" />
+              ) : (
+                (selectedUser?.full_name?.[0] || selectedUser?.email?.[0] || "?").toUpperCase()
+              )}
+            </div>
+            <DialogTitle className="text-xl">{selectedUser?.full_name || "New Admin"}</DialogTitle>
+            <div className="text-xs text-muted-foreground">{selectedUser?.email}</div>
+          </DialogHeader>
+          
+          <div className="grid grid-cols-2 gap-4 py-4 border-y border-white/5 my-4 text-center">
+            <div>
+              <div className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Role</div>
+              <StatusPill tone={selectedUser?.full_name === "Sridhar Silver" ? "amber" : "blue"}>
+                {selectedUser?.full_name === "Sridhar Silver" ? "Super Admin" : "Admin"}
+              </StatusPill>
+            </div>
+            <div>
+              <div className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Joined</div>
+              <div className="text-xs font-medium">{selectedUser && new Date(selectedUser.created_at).toLocaleDateString()}</div>
+            </div>
+          </div>
+
+          <DialogFooter className="flex-col sm:flex-col gap-2">
+            {isSuperAdmin && (
+              <Button className="w-full bg-gradient-brand text-brand-foreground shadow-glow gap-2" onClick={() => handleStartEdit(selectedUser)}>
+                <Pencil size={16} /> Edit User
+              </Button>
+            )}
+            <div className="flex gap-2">
+              <Button variant="outline" className="flex-1 border-white/10 hover:bg-white/5" onClick={() => setSelectedUser(null)}>Close</Button>
+              <a href="https://supabase.com/dashboard/project/_/auth/users" target="_blank" rel="noopener noreferrer" className="flex-1">
+                <Button variant="ghost" className="w-full text-muted-foreground hover:text-foreground gap-2">
+                  <ExternalLink size={16} /> Dashboard
+                </Button>
+              </a>
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Edit User Dialog */}
       <Dialog open={!!editingUser} onOpenChange={(v) => !v && !saving && setEditingUser(null)}>

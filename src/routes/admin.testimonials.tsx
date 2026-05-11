@@ -33,6 +33,7 @@ function TestimonialsPage() {
   const [loading, setLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
   const [editingTestimonial, setEditingTestimonial] = useState<any>(null);
+  const [selectedTestimonial, setSelectedTestimonial] = useState<any | null>(null);
   const [viewMode, setViewMode] = useState<"list" | "grid">("grid");
 
   useEffect(() => {
@@ -48,6 +49,12 @@ function TestimonialsPage() {
     if (data) setTestimonials(data);
     setLoading(false);
   }
+
+  const handleEdit = (testimonial: any) => {
+    setEditingTestimonial(testimonial);
+    setIsOpen(true);
+    setSelectedTestimonial(null);
+  };
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -90,8 +97,8 @@ function TestimonialsPage() {
     <StatusPill key={`s-${t.id}`} tone={t.status === "approved" ? "green" : "amber"}>
       {t.status === "approved" ? "Approved" : "Pending"}
     </StatusPill>,
-    <div className="flex gap-1" key={`a-${t.id}`}>
-      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { setEditingTestimonial(t); setIsOpen(true); }}><Edit2 size={14} /></Button>
+    <div className="flex gap-1" key={`a-${t.id}`} onClick={(e) => e.stopPropagation()}>
+      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEdit(t)}><Edit2 size={14} /></Button>
       <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDelete(t.id)}><Trash2 size={14} /></Button>
     </div>
   ]);
@@ -148,11 +155,15 @@ function TestimonialsPage() {
           <div className="size-8 border-4 border-brand border-t-transparent rounded-full animate-spin" />
         </div>
       ) : viewMode === "list" ? (
-        <DataTable columns={columns} rows={rows} />
+        <DataTable columns={columns} rows={rows} onRowClick={(idx) => setSelectedTestimonial(testimonials[idx])} />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {testimonials.map((t) => (
-            <AdminCard key={t.id} className="group overflow-hidden flex flex-col h-full border border-white/5 hover:border-brand/30 transition-all duration-300">
+            <AdminCard 
+              key={t.id} 
+              className="group overflow-hidden flex flex-col h-full border border-white/5 hover:border-brand/30 transition-all duration-300 cursor-pointer"
+              onClick={() => setSelectedTestimonial(t)}
+            >
               <div className="p-6 flex-1 flex flex-col bg-gradient-to-br from-white/[0.03] to-transparent relative">
                 <Quote className="absolute top-4 right-4 size-12 text-white/[0.03] pointer-events-none" />
                 <div className="flex items-start justify-between mb-4">
@@ -166,10 +177,6 @@ function TestimonialsPage() {
                 </div>
                 <div className="mb-4"><Stars n={t.rating} /></div>
                 <p className="text-sm text-muted-foreground italic line-clamp-4 leading-relaxed">"{t.content}"</p>
-                <div className="mt-auto pt-6 flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-white/10" onClick={() => { setEditingTestimonial(t); setIsOpen(true); }}><Edit2 size={14} /></Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10" onClick={() => handleDelete(t.id)}><Trash2 size={14} /></Button>
-                </div>
               </div>
             </AdminCard>
           ))}
@@ -181,6 +188,46 @@ function TestimonialsPage() {
           )}
         </div>
       )}
+
+      {/* View Details Dialog */}
+      <Dialog open={!!selectedTestimonial} onOpenChange={(v) => !v && setSelectedTestimonial(null)}>
+        <DialogContent className="glass border-white/10 max-w-md">
+          <DialogHeader>
+            <div className="size-12 rounded-xl bg-gradient-brand text-brand-foreground grid place-items-center mb-4 shadow-glow">
+              <Quote size={24} />
+            </div>
+            <DialogTitle className="text-2xl font-bold">{selectedTestimonial?.name}</DialogTitle>
+            <div className="text-brand font-bold uppercase tracking-widest text-[10px] mt-1">{selectedTestimonial?.company}</div>
+          </DialogHeader>
+          
+          <div className="py-4 space-y-4 text-center">
+            <div className="flex justify-center mb-2">
+              <Stars n={selectedTestimonial?.rating || 5} />
+            </div>
+            <div className="space-y-1">
+              <div className="text-[10px] uppercase font-bold text-muted-foreground">Testimonial Content</div>
+              <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap italic bg-white/5 p-4 rounded-xl border border-white/5">
+                "{selectedTestimonial?.content}"
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter className="flex-col sm:flex-col gap-2 pt-4">
+            <Button className="w-full bg-gradient-brand text-brand-foreground shadow-glow gap-2" onClick={() => handleEdit(selectedTestimonial)}>
+              <Edit2 size={16} /> Edit Review
+            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" className="flex-1 border-white/10 hover:bg-white/5" onClick={() => setSelectedTestimonial(null)}>Close</Button>
+              <Button variant="ghost" className="flex-1 text-destructive hover:bg-destructive/10" onClick={() => {
+                handleDelete(selectedTestimonial.id);
+                setSelectedTestimonial(null);
+              }}>
+                <Trash2 size={16} /> Delete
+              </Button>
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
