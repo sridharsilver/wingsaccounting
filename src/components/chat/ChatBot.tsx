@@ -106,22 +106,35 @@ export const ChatBot: React.FC = () => {
           background: rgba(var(--primary), 0.2); 
         }
         .glass-panel {
-          background: rgba(255, 255, 255, 0.7);
-          backdrop-filter: blur(20px) saturate(180%);
-          -webkit-backdrop-filter: blur(20px) saturate(180%);
-          border: 1px solid rgba(255, 255, 255, 0.3);
+          background: rgba(255, 255, 255, 0.4);
+          backdrop-filter: blur(40px) saturate(200%);
+          -webkit-backdrop-filter: blur(40px) saturate(200%);
+          border: 1px solid rgba(255, 255, 255, 0.5);
         }
         .dark .glass-panel {
-          background: rgba(10, 10, 10, 0.75);
-          backdrop-filter: blur(20px) saturate(180%);
-          -webkit-backdrop-filter: blur(20px) saturate(180%);
-          border: 1px solid rgba(255, 255, 255, 0.08);
+          background: rgba(10, 10, 10, 0.5);
+          backdrop-filter: blur(40px) saturate(200%);
+          -webkit-backdrop-filter: blur(40px) saturate(200%);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .message-glass {
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
         }
       `}} />
 
       <AnimatePresence>
         {isOpen && (
-          <motion.div
+          <>
+            {/* Full Screen Backdrop Blur */}
+            <motion.div
+              initial={{ opacity: 0, backdropFilter: "blur(0px)" }}
+              animate={{ opacity: 1, backdropFilter: "blur(8px)" }}
+              exit={{ opacity: 0, backdropFilter: "blur(0px)" }}
+              onClick={() => setIsOpen(false)}
+              className="fixed inset-0 z-[-1] bg-black/20 pointer-events-auto"
+            />
+            <motion.div
             initial={{ opacity: 0, y: 40, scale: 0.95, filter: "blur(10px)" }}
             animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
             exit={{ opacity: 0, y: 40, scale: 0.95, filter: "blur(10px)" }}
@@ -195,7 +208,7 @@ export const ChatBot: React.FC = () => {
                           "rounded-2xl px-4 py-3 text-sm shadow-sm prose prose-sm dark:prose-invert prose-p:my-0 prose-headings:my-1 prose-a:font-bold prose-a:underline transition-all",
                           message.role === "user" 
                             ? "bg-primary text-primary-foreground rounded-tr-none prose-p:text-primary-foreground prose-strong:text-primary-foreground prose-headings:text-primary-foreground prose-a:text-white shadow-primary/20" 
-                            : "bg-white dark:bg-zinc-800/50 border border-black/5 dark:border-white/5 rounded-tl-none backdrop-blur-sm"
+                            : "bg-white/60 dark:bg-zinc-800/40 border border-black/5 dark:border-white/5 rounded-tl-none message-glass"
                         )}>
                           <ReactMarkdown
                             components={{
@@ -229,7 +242,7 @@ export const ChatBot: React.FC = () => {
                       <Avatar className="h-8 w-8 shrink-0 bg-primary/5 border border-primary/10 shadow-sm animate-pulse">
                         <AvatarFallback className="text-primary"><Bot size={16} /></AvatarFallback>
                       </Avatar>
-                      <div className="bg-white/50 dark:bg-zinc-800/30 border border-black/5 dark:border-white/5 rounded-2xl rounded-tl-none px-4 py-3 flex items-center gap-3 shadow-sm backdrop-blur-sm">
+                      <div className="bg-white/40 dark:bg-zinc-800/20 border border-black/5 dark:border-white/5 rounded-2xl rounded-tl-none px-4 py-3 flex items-center gap-3 shadow-sm message-glass">
                         <div className="flex gap-1">
                           <motion.span animate={{ opacity: [0.3, 1, 0.3] }} transition={{ repeat: Infinity, duration: 1.5, delay: 0 }} className="h-1.5 w-1.5 rounded-full bg-primary" />
                           <motion.span animate={{ opacity: [0.3, 1, 0.3] }} transition={{ repeat: Infinity, duration: 1.5, delay: 0.2 }} className="h-1.5 w-1.5 rounded-full bg-primary" />
