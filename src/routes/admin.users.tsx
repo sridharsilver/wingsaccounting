@@ -20,6 +20,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Cropper from "react-easy-crop";
 
+const MODULES = [
+  { id: "portfolio", label: "Portfolio" },
+  { id: "services", label: "Services" },
+  { id: "blog", label: "Blog" },
+  { id: "enquiries", label: "Enquiries" },
+  { id: "team", label: "Team" },
+  { id: "testimonials", label: "Testimonials" },
+  { id: "users", label: "User Management" },
+  { id: "style-guide", label: "Style Guide" },
+];
+
 export const Route = createFileRoute("/admin/users")({
   component: UsersPage,
 });
@@ -55,6 +66,7 @@ function UsersPage() {
   const [editName, setEditName] = useState("");
   const [editPhone, setEditPhone] = useState("");
   const [editAvatar, setEditAvatar] = useState("");
+  const [editPermissions, setEditPermissions] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
 
   const handleStartEdit = (user: any) => {
@@ -62,6 +74,7 @@ function UsersPage() {
     setEditName(user.full_name || "");
     setEditPhone(user.phone || "");
     setEditAvatar(user.avatar_url || "");
+    setEditPermissions(user.permissions || []);
     setSelectedUser(null);
   };
 
@@ -94,6 +107,7 @@ function UsersPage() {
     setEditName(user.full_name || "");
     setEditPhone(user.phone || "");
     setEditAvatar(user.avatar_url || "");
+    setEditPermissions(user.permissions || []);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -127,9 +141,14 @@ function UsersPage() {
     setSaving(true);
     const { error } = await supabase
       .from("profiles")
-      .update({ full_name: editName, phone: editPhone, avatar_url: editAvatar })
+      .update({ 
+        full_name: editName, 
+        phone: editPhone, 
+        avatar_url: editAvatar,
+        permissions: editPermissions 
+      })
       .eq("id", editingUser.id);
-
+    
     if (error) {
       toast.error(error.message);
     } else {
@@ -138,6 +157,12 @@ function UsersPage() {
       setEditingUser(null);
     }
     setSaving(false);
+  };
+
+  const togglePermission = (modId: string) => {
+    setEditPermissions(prev => 
+      prev.includes(modId) ? prev.filter(p => p !== modId) : [...prev, modId]
+    );
   };
 
   const columns = ["User", "Email", "Role", "Joined Date"];
@@ -273,6 +298,30 @@ function UsersPage() {
                   <div className="relative">
                     <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input value={editPhone} onChange={(e) => setEditPhone(e.target.value)} className="pl-10" />
+                  </div>
+                </div>
+
+                <div className="space-y-3 pt-4 border-t border-white/5">
+                  <Label className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Module Access Control</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {MODULES.map(mod => (
+                      <div 
+                        key={mod.id} 
+                        onClick={() => togglePermission(mod.id)}
+                        className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer transition-all ${
+                          editPermissions.includes(mod.id) 
+                            ? 'bg-brand/10 border-brand/50 text-brand' 
+                            : 'bg-white/5 border-white/5 text-muted-foreground hover:bg-white/10'
+                        }`}
+                      >
+                        <div className={`size-4 rounded border flex items-center justify-center ${
+                          editPermissions.includes(mod.id) ? 'bg-brand border-brand' : 'border-white/20'
+                        }`}>
+                          {editPermissions.includes(mod.id) && <Check size={12} className="text-brand-foreground" />}
+                        </div>
+                        <span className="text-xs font-medium">{mod.label}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>

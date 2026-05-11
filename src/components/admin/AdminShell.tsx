@@ -11,20 +11,20 @@ const NAV_GROUPS = [
     label: "Management",
     items: [
       { to: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
-      { to: "/admin/portfolio", label: "Portfolio", icon: Image },
-      { to: "/admin/services", label: "Services", icon: Briefcase },
-      { to: "/admin/blog", label: "Blog", icon: FileText },
-      { to: "/admin/enquiries", label: "Enquiries", icon: MessageSquare, badge: "newEnquiriesCount" },
-      { to: "/admin/team", label: "Team", icon: Users },
-      { to: "/admin/testimonials", label: "Testimonials", icon: Star },
+      { to: "/admin/portfolio", label: "Portfolio", icon: Image, permission: "portfolio" },
+      { to: "/admin/services", label: "Services", icon: Briefcase, permission: "services" },
+      { to: "/admin/blog", label: "Blog", icon: FileText, permission: "blog" },
+      { to: "/admin/enquiries", label: "Enquiries", icon: MessageSquare, badge: "newEnquiriesCount", permission: "enquiries" },
+      { to: "/admin/team", label: "Team", icon: Users, permission: "team" },
+      { to: "/admin/testimonials", label: "Testimonials", icon: Star, permission: "testimonials" },
     ]
   },
   {
     label: "System",
     items: [
-      { to: "/admin/users", label: "User Management", icon: Shield },
+      { to: "/admin/users", label: "User Management", icon: Shield, permission: "users" },
       { to: "/admin/profile", label: "Profile Settings", icon: Settings },
-      { to: "/admin/style-guide", label: "Style Guide", icon: Palette },
+      { to: "/admin/style-guide", label: "Style Guide", icon: Palette, permission: "style-guide" },
     ]
   }
 ];
@@ -128,33 +128,43 @@ export function AdminShell() {
           <button onClick={() => setOpen(false)} className="lg:hidden p-2 rounded-xl hover:bg-foreground/5 text-muted-foreground"><X size={24} /></button>
         </div>
         <nav className="p-3 space-y-6">
-          {NAV_GROUPS.map((group) => (
-            <div key={group.label} className="space-y-1.5">
-              <div className="px-3 text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/50 mb-2">
-                {group.label}
+          {NAV_GROUPS.map((group) => {
+            const isSuperAdmin = user?.full_name === "Sridhar Silver";
+            const filteredItems = group.items.filter(item => {
+              if (!item.permission || isSuperAdmin) return true;
+              return Array.isArray(user?.permissions) && user.permissions.includes(item.permission);
+            });
+
+            if (filteredItems.length === 0) return null;
+
+            return (
+              <div key={group.label} className="space-y-1.5">
+                <div className="px-3 text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/50 mb-2">
+                  {group.label}
+                </div>
+                <div className="space-y-1">
+                  {filteredItems.map((n) => {
+                    const active = isActive(n.to, n.exact);
+                    return (
+                      <Link
+                        key={n.to}
+                        to={n.to}
+                        onClick={() => setOpen(false)}
+                        className={`flex items-center gap-3 px-4 py-3 text-base font-medium rounded-xl transition ${active ? "bg-gradient-brand text-brand-foreground shadow-glow" : "text-muted-foreground hover:text-foreground hover:bg-foreground/5"}`}
+                      >
+                        <n.icon size={16} /> <span className="flex-1">{n.label}</span>
+                        {n.badge === "newEnquiriesCount" && newEnquiriesCount > 0 && (
+                          <span className={`px-2 py-0.5 text-xs font-bold rounded-full ${active ? 'bg-white text-brand' : 'bg-brand text-white'}`}>
+                            {newEnquiriesCount}
+                          </span>
+                        )}
+                      </Link>
+                    );
+                  })}
+                </div>
               </div>
-              <div className="space-y-1">
-                {group.items.map((n) => {
-                  const active = isActive(n.to, n.exact);
-                  return (
-                    <Link
-                      key={n.to}
-                      to={n.to}
-                      onClick={() => setOpen(false)}
-                      className={`flex items-center gap-3 px-4 py-3 text-base font-medium rounded-xl transition ${active ? "bg-gradient-brand text-brand-foreground shadow-glow" : "text-muted-foreground hover:text-foreground hover:bg-foreground/5"}`}
-                    >
-                      <n.icon size={16} /> <span className="flex-1">{n.label}</span>
-                      {n.badge === "newEnquiriesCount" && newEnquiriesCount > 0 && (
-                        <span className={`px-2 py-0.5 text-xs font-bold rounded-full ${active ? 'bg-white text-brand' : 'bg-brand text-white'}`}>
-                          {newEnquiriesCount}
-                        </span>
-                      )}
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </nav>
         <div className="absolute bottom-4 inset-x-3 space-y-2">
           <button 
