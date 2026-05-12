@@ -389,6 +389,23 @@ function AdminSettingsPage() {
                       </div>
                     </div>
                   </div>
+
+                  <div className="pt-4">
+                    <button 
+                      onClick={handleSave}
+                      disabled={isSaving}
+                      className="w-full py-4 rounded-2xl bg-gradient-brand text-brand-foreground font-bold shadow-glow hover:opacity-90 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
+                    >
+                      {isSaving ? (
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                      ) : (
+                        <>
+                          <CheckCircle2 size={20} />
+                          Save Changes
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </CardContent>
               </Card>
             </div>
