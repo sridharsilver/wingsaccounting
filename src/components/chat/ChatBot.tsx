@@ -33,10 +33,12 @@ export const ChatBot: React.FC = () => {
   const [isListening, setIsListening] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [rateLimitCooldown, setRateLimitCooldown] = useState(0); // seconds remaining
   const scrollRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const speechRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const cooldownTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     // Use a more reliable notification sound (Base64 for a short pleasant 'pop')
@@ -151,6 +153,28 @@ export const ChatBot: React.FC = () => {
     }
   };
 
+  // Countdown timer for rate limit cooldown
+  const startCooldown = (seconds: number) => {
+    setRateLimitCooldown(seconds);
+    if (cooldownTimerRef.current) clearInterval(cooldownTimerRef.current);
+    cooldownTimerRef.current = setInterval(() => {
+      setRateLimitCooldown(prev => {
+        if (prev <= 1) {
+          clearInterval(cooldownTimerRef.current!);
+          cooldownTimerRef.current = null;
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (cooldownTimerRef.current) clearInterval(cooldownTimerRef.current);
+    };
+  }, []);
+
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTo({
@@ -162,7 +186,7 @@ export const ChatBot: React.FC = () => {
 
   const handleSend = async (customText?: string) => {
     const textToSend = customText || input;
-    if (!textToSend.trim() || isLoading) return;
+    if (!textToSend.trim() || isLoading || rateLimitCooldown > 0) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -184,6 +208,11 @@ export const ChatBot: React.FC = () => {
       });
 
       if (error) throw error;
+
+      // If the API returned a rate limit signal, start the countdown with exact retry time
+      if (data?.rateLimit) {
+        startCooldown(data?.retryAfter || 180);
+      }
 
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -207,10 +236,19 @@ export const ChatBot: React.FC = () => {
       }
     } catch (error: any) {
       console.error("Chat error:", error);
+      // Check if it's a rate limit error
+      const isRateLimit = error?.message?.toLowerCase().includes('quota') ||
+        error?.message?.toLowerCase().includes('rate') ||
+        error?.status === 429;
+      if (isRateLimit) {
+        startCooldown(180); // 3 minutes
+      }
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: "Oops! I encountered a turbulence. Please try again later.",
+        content: isRateLimit
+          ? "⏳ I've hit my request limit. I'll be back in **3 minutes**! Please wait for the countdown to finish."
+          : "Oops! I encountered a turbulence. Please try again later.",
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, errorMessage]);
@@ -422,16 +460,31 @@ export const ChatBot: React.FC = () => {
                     ))}
                   </div>
                 )}
+                {/* Rate Limit Countdown Banner */}
+                {rateLimitCooldown > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="w-full flex items-center justify-center gap-2 bg-amber-500/10 border border-amber-500/20 rounded-2xl px-4 py-2.5"
+                  >
+                    <Loader2 size={14} className="text-amber-500 animate-spin" />
+                    <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">
+                      Quota restoring in {Math.floor(rateLimitCooldown / 60)}:{String(rateLimitCooldown % 60).padStart(2, '0')}
+                    </span>
+                  </motion.div>
+                )}
                 <div className="flex w-full gap-2 items-center relative group">
                   <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/20 to-purple-500/20 rounded-2xl blur opacity-0 group-focus-within:opacity-100 transition duration-500" />
                   <Input
-                    placeholder={isListening ? "Listening..." : "Type your message..."}
+                    placeholder={rateLimitCooldown > 0 ? `Wait ${Math.floor(rateLimitCooldown / 60)}:${String(rateLimitCooldown % 60).padStart(2, '0')} to chat...` : isListening ? "Listening..." : "Type your message..."}
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleSend()}
+                    disabled={rateLimitCooldown > 0}
                     className={cn(
                       "flex-1 bg-white/50 dark:bg-black/40 border-black/10 dark:border-white/10 focus-visible:ring-primary/50 h-12 pr-24 rounded-2xl relative z-10 backdrop-blur-md transition-all placeholder:text-muted-foreground/50",
-                      isListening && "ring-2 ring-primary/50 border-primary"
+                      isListening && "ring-2 ring-primary/50 border-primary",
+                      rateLimitCooldown > 0 && "opacity-50 cursor-not-allowed"
                     )}
                   />
                   <div className="absolute right-1.5 flex items-center gap-1 z-20">
@@ -439,6 +492,7 @@ export const ChatBot: React.FC = () => {
                       size="icon"
                       variant="ghost"
                       onClick={toggleListening}
+                      disabled={rateLimitCooldown > 0}
                       className={cn(
                         "h-9 w-9 rounded-xl transition-all",
                         isListening ? "bg-red-500/10 text-red-500 hover:bg-red-500/20" : "text-muted-foreground hover:bg-black/5 dark:hover:bg-white/10"
@@ -458,7 +512,7 @@ export const ChatBot: React.FC = () => {
                     <Button 
                       size="icon" 
                       onClick={() => handleSend()} 
-                      disabled={!input.trim() || isLoading}
+                      disabled={!input.trim() || isLoading || rateLimitCooldown > 0}
                       className="h-9 w-9 rounded-xl shadow-xl hover:shadow-primary/30 transition-all active:scale-95"
                     >
                       <Send size={18} />
