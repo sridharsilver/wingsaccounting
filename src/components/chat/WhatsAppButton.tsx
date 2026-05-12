@@ -3,13 +3,19 @@ import { motion } from "framer-motion";
 import { MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+import { useSiteSettings } from "@/hooks/use-site-settings";
+
 export const WhatsAppButton: React.FC = () => {
+  const { settings } = useSiteSettings();
   const phoneNumber = "919951979988";
   const message = encodeURIComponent("Hi Wings Design Studio! I'm interested in your services.");
   const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`;
 
   return (
-    <div className="fixed bottom-6 left-6 z-[100] pointer-events-none">
+    <div className={cn(
+      "fixed bottom-6 z-[100] pointer-events-none transition-all duration-500",
+      settings.show_chatbot ? "left-6" : "right-6"
+    )}>
       <motion.a
         href={whatsappUrl}
         target="_blank"
@@ -30,8 +36,13 @@ export const WhatsAppButton: React.FC = () => {
         {/* Icon */}
         <MessageSquare size={24} className="relative z-10" />
         
-        {/* Label on hover - Now slides to the right */}
-        <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 px-3 py-1.5 rounded-lg bg-black/80 text-white text-[10px] font-bold uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none backdrop-blur-md border border-white/10">
+        {/* Label on hover - Dynamic positioning */}
+        <div className={cn(
+          "absolute top-1/2 -translate-y-1/2 px-3 py-1.5 rounded-lg bg-black/80 text-white text-[10px] font-bold uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all duration-300 whitespace-nowrap pointer-events-none backdrop-blur-md border border-white/10",
+          settings.show_chatbot 
+            ? "left-full ml-3 group-hover:translate-x-0 -translate-x-2" 
+            : "right-full mr-3 group-hover:translate-x-0 translate-x-2"
+        )}>
           Chat on WhatsApp
         </div>
 
