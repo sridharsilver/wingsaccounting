@@ -43,14 +43,14 @@ serve(async (req) => {
     1. "reply": Your actual response text.
     2. "lang": The BCP-47 language tag of the response (e.g., "en-US", "hi-IN", "te-IN", "es-ES", "fr-FR", "de-DE", "zh-CN").`
 
-    // Truncate to last 6 messages
-    const maxHistory = 6;
+    // Hyper-aggressive truncation: Last 4 messages
+    const maxHistory = 4;
     const historyToProcess = history?.slice(-maxHistory) || [];
     
-    // Universal format: Prepend system prompt to history
+    // Universal format
     const contents = [
       { role: 'user', parts: [{ text: `INSTRUCTION: ${systemPrompt}` }] },
-      { role: 'model', parts: [{ text: 'I understand. I am the Wings Design Studio AI Concierge.' }] }
+      { role: 'model', parts: [{ text: 'Understood.' }] }
     ];
 
     if (historyToProcess.length > 0) {
@@ -61,7 +61,6 @@ serve(async (req) => {
       }
     }
 
-    // Add current message
     if (contents[contents.length-1].role === 'user') {
       contents[contents.length-1].parts[0].text += `\n\nUser: ${message}`;
     } else {
@@ -69,53 +68,42 @@ serve(async (req) => {
     }
 
     const requestBody = { contents };
-    const models = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro'];
     let response;
     let data;
-    let lastError;
-    let lastModelTried = models[0];
+    let attempts = 0;
 
-    for (const model of models) {
-      lastModelTried = model;
-      try {
-        response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(requestBody)
-          }
-        )
-
-        data = await response.json()
-        if (response.ok) break;
-        
-        lastError = data;
-        console.warn(`Model ${model} failed: ${response.status}`, data)
-        
-        if (response.status === 429 || response.status === 404 || response.status >= 500) {
-          continue;
-        } else {
-          break;
+    // Auto-retry once on 429
+    while (attempts < 2) {
+      response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(requestBody)
         }
-      } catch (e) {
-        console.error(`Fetch error for ${model}:`, e)
+      )
+
+      data = await response.json()
+      if (response.status !== 429) break;
+      
+      attempts++;
+      if (attempts < 2) {
+        console.warn('Rate limited. Waiting 1.5s before retry...')
+        await new Promise(resolve => setTimeout(resolve, 1500));
       }
     }
 
-    if (!response || !response.ok) {
-      const errorText = JSON.stringify(lastError || { error: 'Unknown' })
-      const status = response?.status || 500
-      const isQuotaError = status === 429 || errorText.includes('RESOURCE_EXHAUSTED') || errorText.includes('quota')
+    if (!response.ok) {
+      const errorText = JSON.stringify(data)
+      const isQuotaError = response.status === 429 || errorText.includes('RESOURCE_EXHAUSTED') || errorText.includes('quota')
       
-      const errorMessage = lastError?.error?.message || 'Unknown error'
       const retryMatch = errorText.match(/retry in (\d+(\.\d+)?)s/)
       const retrySeconds = retryMatch ? Math.ceil(parseFloat(retryMatch[1])) + 10 : 180
 
       return new Response(JSON.stringify({ 
         reply: isQuotaError
           ? `⏳ I've hit my request limit. I'll be back in **${retrySeconds < 60 ? retrySeconds + ' seconds' : '3 minutes'}**! Please wait.`
-          : `⚠️ ${status} Error (${lastModelTried}): ${errorMessage}`,
+          : `⚠️ API Error: ${response.status}`,
         lang: "en-US",
         rateLimit: isQuotaError,
         retryAfter: isQuotaError ? retrySeconds : 0
