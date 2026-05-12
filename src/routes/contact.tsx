@@ -50,7 +50,7 @@ function ContactPage() {
       if (error) throw error;
 
       if (method === 'whatsapp') {
-        const waNumber = "919951979988";
+        const waNumber = settings.whatsapp_number || "919951979988";
         const waMessage = `Hi Wings Graphics! My name is ${formData.name}. I'm interested in ${formData.subject || 'your services'}.\n\nMessage: ${formData.message}`;
         const waUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(waMessage)}`;
         window.open(waUrl, "_blank");
@@ -159,7 +159,7 @@ function ContactPage() {
             <Info icon={Phone} t="Phone" d="+91 9951979988" />
             <Info icon={Mail} t="Email" d="hello@wingsgraphics.in" />
             <Info icon={Clock} t="Hours" d="Mon–Sat · 10:00 — 19:00" />
-            <a href="https://wa.me/919951979988" target="_blank" rel="noopener" className="flex items-center justify-between p-5 rounded-2xl bg-gradient-brand text-brand-foreground shadow-glow font-medium">
+            <a href={`https://wa.me/${settings.whatsapp_number || "919951979988"}`} target="_blank" rel="noopener" className="flex items-center justify-between p-5 rounded-2xl bg-gradient-brand text-brand-foreground shadow-glow font-medium">
               <span className="flex items-center gap-3"><MessageCircle size={20} /> Chat on WhatsApp</span>
               <span>→</span>
             </a>

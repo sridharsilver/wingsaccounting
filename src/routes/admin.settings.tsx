@@ -1,6 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { 
   Settings, 
   MessageSquare, 
@@ -87,6 +89,7 @@ function AdminSettingsPage() {
     show_testimonials: true,
     show_enquiry_form: true,
     show_contact_map: true,
+    whatsapp_number: '919951979988',
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -121,6 +124,15 @@ function AdminSettingsPage() {
     const newSettings = { ...settings, [id]: !settings[id] };
     setSettings(newSettings);
     await saveSettings(newSettings);
+  }
+
+  async function handleValueChange(id: keyof VisibilitySettings, value: string) {
+    const newSettings = { ...settings, [id]: value };
+    setSettings(newSettings);
+  }
+
+  async function handleSave() {
+    await saveSettings(settings);
   }
 
   async function saveSettings(settingsToSave: VisibilitySettings) {
@@ -166,6 +178,7 @@ function AdminSettingsPage() {
         </div>
         
         <div className="flex items-center gap-3">
+          {isSaving && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
           {saveStatus === 'success' && (
             <motion.div 
               initial={{ opacity: 0, x: 20 }}
@@ -173,7 +186,7 @@ function AdminSettingsPage() {
               className="flex items-center gap-2 text-green-600 dark:text-green-400 text-sm font-bold bg-green-500/10 px-3 py-1.5 rounded-full border border-green-500/20"
             >
               <CheckCircle2 size={14} />
-              Saved Successfully
+              Saved
             </motion.div>
           )}
           {saveStatus === 'error' && (
@@ -213,6 +226,24 @@ function AdminSettingsPage() {
                     </AccordionTrigger>
                     <AccordionContent className="px-6 pb-4 pt-2">
                       <div className="space-y-4">
+                        {group.id === 'global' && (
+                          <div className="mb-6 p-4 rounded-xl bg-background border border-border/50 space-y-4">
+                            <div className="space-y-2">
+                              <Label htmlFor="whatsapp_number" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">WhatsApp Contact Number</Label>
+                              <div className="flex gap-2">
+                                <Input 
+                                  id="whatsapp_number"
+                                  value={settings.whatsapp_number}
+                                  onChange={(e) => handleValueChange('whatsapp_number', e.target.value)}
+                                  onBlur={handleSave}
+                                  placeholder="e.g. 919951979988"
+                                  className="rounded-xl border-none bg-foreground/5 focus-visible:ring-primary"
+                                />
+                              </div>
+                              <p className="text-[10px] text-muted-foreground italic">Include country code without + (e.g. 91 for India)</p>
+                            </div>
+                          </div>
+                        )}
                         {group.items.map((item) => {
                           const isVisible = settings[item.id as keyof VisibilitySettings];
                           return (

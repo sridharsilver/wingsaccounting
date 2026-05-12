@@ -10,6 +10,7 @@ export interface VisibilitySettings {
   show_testimonials: boolean;
   show_enquiry_form: boolean;
   show_contact_map: boolean;
+  whatsapp_number: string;
 }
 
 const DEFAULT_SETTINGS: VisibilitySettings = {
@@ -21,6 +22,7 @@ const DEFAULT_SETTINGS: VisibilitySettings = {
   show_testimonials: true,
   show_enquiry_form: true,
   show_contact_map: true,
+  whatsapp_number: '919951979988',
 };
 
 export function useSiteSettings() {
