@@ -92,6 +92,10 @@ function AdminSettingsPage() {
     show_contact_map: true,
     whatsapp_number: '919951979988',
     whatsapp_message: "Hi Wings Design Studio! I'm interested in your services.",
+    studio_address: 'SRT 12, Sanath Nagar, Hyderabad, TS 500018',
+    contact_phone: '+91 9951979988',
+    contact_email: 'hello@wingsgraphics.in',
+    working_hours: 'Mon–Sat · 10:00 — 19:00',
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -215,7 +219,7 @@ function AdminSettingsPage() {
               <CardDescription>Control which sections are visible to your visitors.</CardDescription>
             </CardHeader>
             <CardContent className="pt-6">
-              <Accordion type="multiple" defaultValue={["global", "home"]} className="w-full">
+              <Accordion type="single" collapsible className="w-full">
                 {SETTING_GROUPS.map((group) => (
                   <AccordionItem key={group.id} value={group.id} className="border-b-0 mb-4 bg-foreground/5 rounded-2xl overflow-hidden">
                     <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-foreground/5 transition-colors group">
@@ -256,6 +260,52 @@ function AdminSettingsPage() {
                                 className="rounded-xl border-none bg-foreground/5 focus-visible:ring-primary min-h-[100px] resize-none"
                               />
                               <p className="text-[10px] text-muted-foreground italic px-1">This message will be pre-filled when a user starts a chat.</p>
+                            </div>
+                          </div>
+                        )}
+                        {group.id === 'contact' && (
+                          <div className="mb-6 p-4 rounded-xl bg-background border border-border/50 space-y-4">
+                            <div className="grid sm:grid-cols-2 gap-4">
+                              <div className="space-y-2">
+                                <Label htmlFor="contact_phone" className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Studio Phone</Label>
+                                <Input 
+                                  id="contact_phone"
+                                  value={settings.contact_phone}
+                                  onChange={(e) => handleValueChange('contact_phone', e.target.value)}
+                                  onBlur={handleSave}
+                                  className="rounded-xl border-none bg-foreground/5"
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label htmlFor="contact_email" className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Studio Email</Label>
+                                <Input 
+                                  id="contact_email"
+                                  value={settings.contact_email}
+                                  onChange={(e) => handleValueChange('contact_email', e.target.value)}
+                                  onBlur={handleSave}
+                                  className="rounded-xl border-none bg-foreground/5"
+                                />
+                              </div>
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="studio_address" className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Studio Address</Label>
+                              <Input 
+                                id="studio_address"
+                                value={settings.studio_address}
+                                onChange={(e) => handleValueChange('studio_address', e.target.value)}
+                                onBlur={handleSave}
+                                className="rounded-xl border-none bg-foreground/5"
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="working_hours" className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Working Hours</Label>
+                              <Input 
+                                id="working_hours"
+                                value={settings.working_hours}
+                                onChange={(e) => handleValueChange('working_hours', e.target.value)}
+                                onBlur={handleSave}
+                                className="rounded-xl border-none bg-foreground/5"
+                              />
                             </div>
                           </div>
                         )}

@@ -12,6 +12,10 @@ export interface VisibilitySettings {
   show_contact_map: boolean;
   whatsapp_number: string;
   whatsapp_message: string;
+  studio_address: string;
+  contact_phone: string;
+  contact_email: string;
+  working_hours: string;
 }
 
 const DEFAULT_SETTINGS: VisibilitySettings = {
@@ -25,6 +29,10 @@ const DEFAULT_SETTINGS: VisibilitySettings = {
   show_contact_map: true,
   whatsapp_number: '919951979988',
   whatsapp_message: "Hi Wings Design Studio! I'm interested in your services.",
+  studio_address: 'SRT 12, Sanath Nagar, Hyderabad, TS 500018',
+  contact_phone: '+91 9951979988',
+  contact_email: 'hello@wingsgraphics.in',
+  working_hours: 'Mon–Sat · 10:00 — 19:00',
 };
 
 export function useSiteSettings() {
