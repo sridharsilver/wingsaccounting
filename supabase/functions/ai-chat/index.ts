@@ -67,12 +67,14 @@ serve(async (req) => {
       generationConfig: { response_mime_type: "application/json" }
     }
 
-    const models = ['gemini-2.0-flash', 'gemini-1.5-flash-latest'];
+    const models = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-flash-8b'];
     let response;
     let data;
     let lastError;
+    let lastModelTried = models[0];
 
     for (const model of models) {
+      lastModelTried = model;
       try {
         response = await fetch(
           `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
@@ -87,10 +89,14 @@ serve(async (req) => {
         if (response.ok) break; // Success!
         
         lastError = data;
-        console.warn(`Model ${model} failed with status ${response.status}. Trying next...`)
+        console.warn(`Model ${model} failed with status ${response.status}.`)
         
-        // Only retry if it's a rate limit or server error
-        if (response.status !== 429 && response.status < 500) break;
+        // Continue to next model on 429, 404, or 5xx
+        if (response.status === 429 || response.status === 404 || response.status >= 500) {
+          continue;
+        } else {
+          break; // Unrecoverable (e.g. 400 Bad Request)
+        }
       } catch (e) {
         console.error(`Fetch error for ${model}:`, e)
       }
@@ -107,7 +113,7 @@ serve(async (req) => {
       return new Response(JSON.stringify({ 
         reply: isQuotaError
           ? `⏳ I've hit my request limit. I'll be back in **${retrySeconds < 60 ? retrySeconds + ' seconds' : '3 minutes'}**! Please wait.`
-          : `⚠️ Something went wrong. (${status})`,
+          : `⚠️ Something went wrong. (${status} - ${lastModelTried})`,
         lang: "en-US",
         rateLimit: isQuotaError,
         retryAfter: isQuotaError ? retrySeconds : 0
