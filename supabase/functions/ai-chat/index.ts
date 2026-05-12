@@ -43,31 +43,33 @@ serve(async (req) => {
     1. "reply": Your actual response text.
     2. "lang": The BCP-47 language tag of the response (e.g., "en-US", "hi-IN", "te-IN", "es-ES", "fr-FR", "de-DE", "zh-CN").`
 
-    // Truncate to last 6 messages for maximum efficiency
+    // Truncate to last 6 messages
     const maxHistory = 6;
     const historyToProcess = history?.slice(-maxHistory) || [];
-    const formattedHistory = []
-    let lastRole = null
+    
+    // Universal format: Prepend system prompt to history
+    const contents = [
+      { role: 'user', parts: [{ text: `INSTRUCTION: ${systemPrompt}` }] },
+      { role: 'model', parts: [{ text: 'I understand. I am the Wings Design Studio AI Concierge.' }] }
+    ];
 
     if (historyToProcess.length > 0) {
       for (const m of historyToProcess) {
         const role = m.role === 'assistant' ? 'model' : 'user'
-        if (role === lastRole) continue
-        if (formattedHistory.length === 0 && role === 'model') continue
-        formattedHistory.push({ role, parts: [{ text: m.content }] })
-        lastRole = role
+        if (role === contents[contents.length-1].role) continue;
+        contents.push({ role, parts: [{ text: m.content }] })
       }
     }
 
-    formattedHistory.push({ role: "user", parts: [{ text: message }] })
-
-    const requestBody = {
-      contents: formattedHistory,
-      system_instruction: { parts: [{ text: systemPrompt }] },
-      generationConfig: { response_mime_type: "application/json" }
+    // Add current message
+    if (contents[contents.length-1].role === 'user') {
+      contents[contents.length-1].parts[0].text += `\n\nUser: ${message}`;
+    } else {
+      contents.push({ role: 'user', parts: [{ text: message }] });
     }
 
-    const models = ['gemini-2.0-flash', 'gemini-1.5-pro', 'gemini-1.0-pro'];
+    const requestBody = { contents };
+    const models = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.0-flash-exp'];
     let response;
     let data;
     let lastError;
@@ -76,8 +78,10 @@ serve(async (req) => {
     for (const model of models) {
       lastModelTried = model;
       try {
+        // Use v1 for flash/pro, v1beta for 2.0-exp
+        const apiVersion = model.includes('2.0') ? 'v1beta' : 'v1';
         response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+          `https://generativelanguage.googleapis.com/${apiVersion}/models/${model}:generateContent?key=${apiKey}`,
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
