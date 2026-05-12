@@ -82,7 +82,7 @@ serve(async (req) => {
     }
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -93,19 +93,19 @@ serve(async (req) => {
     const data = await response.json()
 
     if (!response.ok) {
-      const errorBody = JSON.stringify(data)
+      const errorText = JSON.stringify(data)
       console.error('Gemini API Error Status:', response.status)
-      console.error('Gemini API Error Body:', errorBody)
-      const isQuotaError = response.status === 429 || errorBody.includes('RESOURCE_EXHAUSTED') || errorBody.includes('quota')
+      console.error('Gemini API Error Body:', errorText)
+      const isQuotaError = response.status === 429 || errorText.includes('RESOURCE_EXHAUSTED') || errorText.includes('quota')
 
       // Extract retry time from error message e.g. "retry in 39.16s"
-      const retryMatch = errorBody.match(/retry in (\d+(\.\d+)?)s/)
+      const retryMatch = errorText.match(/retry in (\d+(\.\d+)?)s/)
       const retrySeconds = retryMatch ? Math.ceil(parseFloat(retryMatch[1])) + 10 : 180
 
       return new Response(JSON.stringify({ 
         reply: isQuotaError
           ? `⏳ I've hit my request limit. I'll be back in **${retrySeconds < 60 ? retrySeconds + ' seconds' : '3 minutes'}**! Please wait.`
-          : `⚠️ Something went wrong. Please try again. (${response.status})`,
+          : `⚠️ API Error: ${response.status} - ${data.error?.message || 'Unknown error'}`,
         lang: "en-US",
         rateLimit: isQuotaError,
         retryAfter: isQuotaError ? retrySeconds : 0
