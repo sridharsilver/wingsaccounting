@@ -67,7 +67,7 @@ serve(async (req) => {
       generationConfig: { response_mime_type: "application/json" }
     }
 
-    const models = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-flash-8b'];
+    const models = ['gemini-2.0-flash', 'gemini-1.5-pro', 'gemini-1.0-pro'];
     let response;
     let data;
     let lastError;
@@ -86,16 +86,15 @@ serve(async (req) => {
         )
 
         data = await response.json()
-        if (response.ok) break; // Success!
+        if (response.ok) break;
         
         lastError = data;
-        console.warn(`Model ${model} failed with status ${response.status}.`)
+        console.warn(`Model ${model} failed: ${response.status}`, data)
         
-        // Continue to next model on 429, 404, or 5xx
         if (response.status === 429 || response.status === 404 || response.status >= 500) {
           continue;
         } else {
-          break; // Unrecoverable (e.g. 400 Bad Request)
+          break;
         }
       } catch (e) {
         console.error(`Fetch error for ${model}:`, e)
@@ -106,14 +105,15 @@ serve(async (req) => {
       const errorText = JSON.stringify(lastError || { error: 'Unknown' })
       const status = response?.status || 500
       const isQuotaError = status === 429 || errorText.includes('RESOURCE_EXHAUSTED') || errorText.includes('quota')
-
+      
+      const errorMessage = lastError?.error?.message || 'Unknown error'
       const retryMatch = errorText.match(/retry in (\d+(\.\d+)?)s/)
       const retrySeconds = retryMatch ? Math.ceil(parseFloat(retryMatch[1])) + 10 : 180
 
       return new Response(JSON.stringify({ 
         reply: isQuotaError
           ? `⏳ I've hit my request limit. I'll be back in **${retrySeconds < 60 ? retrySeconds + ' seconds' : '3 minutes'}**! Please wait.`
-          : `⚠️ Something went wrong. (${status} - ${lastModelTried})`,
+          : `⚠️ ${status} Error (${lastModelTried}): ${errorMessage}`,
         lang: "en-US",
         rateLimit: isQuotaError,
         retryAfter: isQuotaError ? retrySeconds : 0
