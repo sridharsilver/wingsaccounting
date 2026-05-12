@@ -43,8 +43,8 @@ serve(async (req) => {
     1. "reply": Your actual response text.
     2. "lang": The BCP-47 language tag of the response (e.g., "en-US", "hi-IN", "te-IN", "es-ES", "fr-FR", "de-DE", "zh-CN").`
 
-    // Filter history and truncate to last 10 messages to save tokens/quota
-    const maxHistory = 10;
+    // Truncate to last 6 messages for maximum efficiency
+    const maxHistory = 6;
     const historyToProcess = history?.slice(-maxHistory) || [];
     const formattedHistory = []
     let lastRole = null
@@ -52,60 +52,62 @@ serve(async (req) => {
     if (historyToProcess.length > 0) {
       for (const m of historyToProcess) {
         const role = m.role === 'assistant' ? 'model' : 'user'
-        
-        // Skip if same role as last or if history starts with 'model'
         if (role === lastRole) continue
         if (formattedHistory.length === 0 && role === 'model') continue
-
-        formattedHistory.push({
-          role,
-          parts: [{ text: m.content }]
-        })
+        formattedHistory.push({ role, parts: [{ text: m.content }] })
         lastRole = role
       }
     }
 
-    // Add current message
-    formattedHistory.push({
-      role: "user",
-      parts: [{ text: message }]
-    })
+    formattedHistory.push({ role: "user", parts: [{ text: message }] })
 
     const requestBody = {
       contents: formattedHistory,
-      system_instruction: {
-        parts: [{ text: systemPrompt }]
-      },
-      generationConfig: {
-        response_mime_type: "application/json"
+      system_instruction: { parts: [{ text: systemPrompt }] },
+      generationConfig: { response_mime_type: "application/json" }
+    }
+
+    const models = ['gemini-2.0-flash', 'gemini-1.5-flash-latest'];
+    let response;
+    let data;
+    let lastError;
+
+    for (const model of models) {
+      try {
+        response = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestBody)
+          }
+        )
+
+        data = await response.json()
+        if (response.ok) break; // Success!
+        
+        lastError = data;
+        console.warn(`Model ${model} failed with status ${response.status}. Trying next...`)
+        
+        // Only retry if it's a rate limit or server error
+        if (response.status !== 429 && response.status < 500) break;
+      } catch (e) {
+        console.error(`Fetch error for ${model}:`, e)
       }
     }
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestBody)
-      }
-    )
+    if (!response || !response.ok) {
+      const errorText = JSON.stringify(lastError || { error: 'Unknown' })
+      const status = response?.status || 500
+      const isQuotaError = status === 429 || errorText.includes('RESOURCE_EXHAUSTED') || errorText.includes('quota')
 
-    const data = await response.json()
-
-    if (!response.ok) {
-      const errorText = JSON.stringify(data)
-      console.error('Gemini API Error Status:', response.status)
-      console.error('Gemini API Error Body:', errorText)
-      const isQuotaError = response.status === 429 || errorText.includes('RESOURCE_EXHAUSTED') || errorText.includes('quota')
-
-      // Extract retry time from error message e.g. "retry in 39.16s"
       const retryMatch = errorText.match(/retry in (\d+(\.\d+)?)s/)
       const retrySeconds = retryMatch ? Math.ceil(parseFloat(retryMatch[1])) + 10 : 180
 
       return new Response(JSON.stringify({ 
         reply: isQuotaError
           ? `⏳ I've hit my request limit. I'll be back in **${retrySeconds < 60 ? retrySeconds + ' seconds' : '3 minutes'}**! Please wait.`
-          : `⚠️ Something went wrong. (${response.status})`,
+          : `⚠️ Something went wrong. (${status})`,
         lang: "en-US",
         rateLimit: isQuotaError,
         retryAfter: isQuotaError ? retrySeconds : 0
