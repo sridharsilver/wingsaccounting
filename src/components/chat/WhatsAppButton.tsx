@@ -8,7 +8,7 @@ import { useSiteSettings } from "@/hooks/use-site-settings";
 export const WhatsAppButton: React.FC = () => {
   const { settings } = useSiteSettings();
   const phoneNumber = settings.whatsapp_number || "919951979988";
-  const message = encodeURIComponent("Hi Wings Design Studio! I'm interested in your services.");
+  const message = encodeURIComponent(settings.whatsapp_message || "Hi Wings Design Studio! I'm interested in your services.");
   const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`;
 
   return (

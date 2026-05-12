@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import { 
   Settings, 
   MessageSquare, 
@@ -90,6 +91,7 @@ function AdminSettingsPage() {
     show_enquiry_form: true,
     show_contact_map: true,
     whatsapp_number: '919951979988',
+    whatsapp_message: "Hi Wings Design Studio! I'm interested in your services.",
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -227,7 +229,7 @@ function AdminSettingsPage() {
                     <AccordionContent className="px-6 pb-4 pt-2">
                       <div className="space-y-4">
                         {group.id === 'global' && (
-                          <div className="mb-6 p-4 rounded-xl bg-background border border-border/50 space-y-4">
+                          <div className="mb-6 p-4 rounded-xl bg-background border border-border/50 space-y-6">
                             <div className="space-y-2">
                               <Label htmlFor="whatsapp_number" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">WhatsApp Contact Number</Label>
                               <div className="flex gap-2">
@@ -240,7 +242,20 @@ function AdminSettingsPage() {
                                   className="rounded-xl border-none bg-foreground/5 focus-visible:ring-primary"
                                 />
                               </div>
-                              <p className="text-[10px] text-muted-foreground italic">Include country code without + (e.g. 91 for India)</p>
+                              <p className="text-[10px] text-muted-foreground italic px-1">Include country code without + (e.g. 91 for India)</p>
+                            </div>
+
+                            <div className="space-y-2">
+                              <Label htmlFor="whatsapp_message" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Default Chat Message</Label>
+                              <Textarea 
+                                id="whatsapp_message"
+                                value={settings.whatsapp_message}
+                                onChange={(e) => handleValueChange('whatsapp_message', e.target.value)}
+                                onBlur={handleSave}
+                                placeholder="Write your default greeting here..."
+                                className="rounded-xl border-none bg-foreground/5 focus-visible:ring-primary min-h-[100px] resize-none"
+                              />
+                              <p className="text-[10px] text-muted-foreground italic px-1">This message will be pre-filled when a user starts a chat.</p>
                             </div>
                           </div>
                         )}

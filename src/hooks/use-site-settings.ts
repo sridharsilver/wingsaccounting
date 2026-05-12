@@ -11,6 +11,7 @@ export interface VisibilitySettings {
   show_enquiry_form: boolean;
   show_contact_map: boolean;
   whatsapp_number: string;
+  whatsapp_message: string;
 }
 
 const DEFAULT_SETTINGS: VisibilitySettings = {
@@ -23,6 +24,7 @@ const DEFAULT_SETTINGS: VisibilitySettings = {
   show_enquiry_form: true,
   show_contact_map: true,
   whatsapp_number: '919951979988',
+  whatsapp_message: "Hi Wings Design Studio! I'm interested in your services.",
 };
 
 export function useSiteSettings() {
