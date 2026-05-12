@@ -43,13 +43,14 @@ serve(async (req) => {
     1. "reply": Your actual response text.
     2. "lang": The BCP-47 language tag of the response (e.g., "en-US", "hi-IN", "te-IN", "es-ES", "fr-FR", "de-DE", "zh-CN").`
 
-    // Filter history to ensure it alternates and starts with 'user'
-    // We skip the initial 'assistant' welcome message if it's the first one
+    // Filter history and truncate to last 10 messages to save tokens/quota
+    const maxHistory = 10;
+    const historyToProcess = history?.slice(-maxHistory) || [];
     const formattedHistory = []
     let lastRole = null
 
-    if (history && history.length > 0) {
-      for (const m of history) {
+    if (historyToProcess.length > 0) {
+      for (const m of historyToProcess) {
         const role = m.role === 'assistant' ? 'model' : 'user'
         
         // Skip if same role as last or if history starts with 'model'
@@ -81,7 +82,7 @@ serve(async (req) => {
     }
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -99,7 +100,7 @@ serve(async (req) => {
 
       // Extract retry time from error message e.g. "retry in 39.16s"
       const retryMatch = errorBody.match(/retry in (\d+(\.\d+)?)s/)
-      const retrySeconds = retryMatch ? Math.ceil(parseFloat(retryMatch[1])) + 5 : 180
+      const retrySeconds = retryMatch ? Math.ceil(parseFloat(retryMatch[1])) + 10 : 180
 
       return new Response(JSON.stringify({ 
         reply: isQuotaError
