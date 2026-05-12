@@ -11,14 +11,22 @@ import {
   Star, 
   Eye, 
   EyeOff,
-  Save,
   Loader2,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  Map as MapIcon,
+  Home as HomeIcon,
+  Phone as PhoneIcon,
+  ChevronRight
 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
+import { 
+  Accordion, 
+  AccordionContent, 
+  AccordionItem, 
+  AccordionTrigger 
+} from "@/components/ui/accordion"
 import { supabase } from '@/lib/supabase'
 import { cn } from '@/lib/utils'
 
@@ -34,16 +42,39 @@ interface VisibilitySettings {
   show_team: boolean;
   show_testimonials: boolean;
   show_enquiry_form: boolean;
+  show_contact_map: boolean;
 }
 
-const SETTING_ITEMS = [
-  { id: 'show_chatbot', label: 'AI Chatbot', description: 'Show/hide the AI concierge bot on all pages', icon: MessageSquare },
-  { id: 'show_portfolio', label: 'Portfolio Section', description: 'Display your creative work gallery', icon: ImageIcon },
-  { id: 'show_services', label: 'Services Section', description: 'List of professional services offered', icon: Briefcase },
-  { id: 'show_blog', label: 'Blog / News', description: 'Latest articles and studio updates', icon: FileText },
-  { id: 'show_team', label: 'Team Section', description: 'Showcase your talented team members', icon: Users },
-  { id: 'show_testimonials', label: 'Testimonials', description: 'Client reviews and feedback section', icon: Star },
-  { id: 'show_enquiry_form', label: 'Enquiry Forms', description: 'Allow users to send business enquiries', icon: MessageSquare },
+const SETTING_GROUPS = [
+  {
+    id: 'global',
+    label: 'Global & AI',
+    icon: Settings,
+    items: [
+      { id: 'show_chatbot', label: 'AI Chatbot', description: 'Show/hide the AI concierge bot on all pages', icon: MessageSquare },
+    ]
+  },
+  {
+    id: 'home',
+    label: 'Home Page',
+    icon: HomeIcon,
+    items: [
+      { id: 'show_portfolio', label: 'Portfolio Section', description: 'Display your creative work gallery', icon: ImageIcon },
+      { id: 'show_services', label: 'Services Section', description: 'List of professional services offered', icon: Briefcase },
+      { id: 'show_blog', label: 'Blog / News', description: 'Latest articles and studio updates', icon: FileText },
+      { id: 'show_team', label: 'Team Section', description: 'Showcase your talented team members', icon: Users },
+      { id: 'show_testimonials', label: 'Testimonials', description: 'Client reviews and feedback section', icon: Star },
+    ]
+  },
+  {
+    id: 'contact',
+    label: 'Contact Page',
+    icon: PhoneIcon,
+    items: [
+      { id: 'show_enquiry_form', label: 'Enquiry Forms', description: 'Allow users to send business enquiries', icon: MessageSquare },
+      { id: 'show_contact_map', label: 'Google Map', description: 'Show/hide the studio location map', icon: MapIcon },
+    ]
+  }
 ];
 
 function AdminSettingsPage() {
@@ -55,6 +86,7 @@ function AdminSettingsPage() {
     show_team: true,
     show_testimonials: true,
     show_enquiry_form: true,
+    show_contact_map: true,
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -71,15 +103,10 @@ function AdminSettingsPage() {
         .from('site_settings')
         .select('value')
         .eq('key', 'frontend_visibility')
-        .single();
+        .maybeSingle();
 
       if (error) {
-        if (error.code === 'PGRST116') {
-          // Table or row doesn't exist, we'll use defaults
-          console.warn("Settings not found, using defaults. Please ensure the site_settings table exists.");
-        } else {
-          throw error;
-        }
+        throw error;
       } else if (data?.value) {
         setSettings(data.value as VisibilitySettings);
       }
@@ -93,7 +120,6 @@ function AdminSettingsPage() {
   async function handleToggle(id: keyof VisibilitySettings) {
     const newSettings = { ...settings, [id]: !settings[id] };
     setSettings(newSettings);
-    // Auto-save on toggle for better UX
     await saveSettings(newSettings);
   }
 
@@ -165,53 +191,63 @@ function AdminSettingsPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         <div className="md:col-span-2 space-y-6">
-          <Card className="border-none shadow-xl bg-surface/50 backdrop-blur-xl">
-            <CardHeader className="pb-4">
+          <Card className="border-none shadow-xl bg-surface/50 backdrop-blur-xl overflow-hidden">
+            <CardHeader className="pb-0">
               <div className="flex items-center gap-2 text-primary">
                 <Eye size={20} />
                 <CardTitle className="text-xl">Frontend Visibility</CardTitle>
               </div>
               <CardDescription>Control which sections are visible to your visitors.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-0 divide-y divide-border">
-              {SETTING_ITEMS.map((item) => {
-                const isVisible = settings[item.id as keyof VisibilitySettings];
-                return (
-                  <div 
-                    key={item.id} 
-                    className={cn(
-                      "flex items-center justify-between py-6 transition-colors group",
-                      !isVisible && "opacity-60"
-                    )}
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className={cn(
-                        "p-3 rounded-2xl transition-all duration-500 group-hover:scale-110",
-                        isVisible ? "bg-primary/10 text-primary shadow-glow-sm" : "bg-muted text-muted-foreground"
-                      )}>
-                        <item.icon size={22} />
+            <CardContent className="pt-6">
+              <Accordion type="multiple" defaultValue={["global", "home"]} className="w-full">
+                {SETTING_GROUPS.map((group) => (
+                  <AccordionItem key={group.id} value={group.id} className="border-b-0 mb-4 bg-foreground/5 rounded-2xl overflow-hidden">
+                    <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-foreground/5 transition-colors group">
+                      <div className="flex items-center gap-3 text-left">
+                        <div className="p-2 rounded-xl bg-background text-primary">
+                          <group.icon size={18} />
+                        </div>
+                        <span className="font-bold text-base">{group.label}</span>
                       </div>
-                      <div>
-                        <p className="font-bold tracking-tight">{item.label}</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">{item.description}</p>
+                    </AccordionTrigger>
+                    <AccordionContent className="px-6 pb-4 pt-2">
+                      <div className="space-y-4">
+                        {group.items.map((item) => {
+                          const isVisible = settings[item.id as keyof VisibilitySettings];
+                          return (
+                            <div 
+                              key={item.id} 
+                              className={cn(
+                                "flex items-center justify-between py-3 rounded-xl px-4 transition-all duration-300",
+                                isVisible ? "bg-background shadow-sm border border-border/50" : "bg-transparent opacity-60"
+                              )}
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className={cn(
+                                  "p-2 rounded-lg transition-all duration-500",
+                                  isVisible ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
+                                )}>
+                                  <item.icon size={18} />
+                                </div>
+                                <div>
+                                  <p className="text-sm font-bold tracking-tight">{item.label}</p>
+                                  <p className="text-[10px] text-muted-foreground leading-tight">{item.description}</p>
+                                </div>
+                              </div>
+                              <Switch 
+                                checked={isVisible}
+                                onCheckedChange={() => handleToggle(item.id as keyof VisibilitySettings)}
+                                className="data-[state=checked]:bg-primary scale-90"
+                              />
+                            </div>
+                          );
+                        })}
                       </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <span className={cn(
-                        "text-[10px] font-bold uppercase tracking-widest hidden sm:block",
-                        isVisible ? "text-primary" : "text-muted-foreground"
-                      )}>
-                        {isVisible ? "Visible" : "Hidden"}
-                      </span>
-                      <Switch 
-                        checked={isVisible}
-                        onCheckedChange={() => handleToggle(item.id as keyof VisibilitySettings)}
-                        className="data-[state=checked]:bg-primary"
-                      />
-                    </div>
-                  </div>
-                );
-              })}
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
             </CardContent>
           </Card>
         </div>
@@ -226,25 +262,14 @@ function AdminSettingsPage() {
             </CardHeader>
             <CardContent className="space-y-4 text-sm text-muted-foreground leading-relaxed">
               <p>
-                These settings are applied globally across the entire Wings Graphics Studio platform.
+                Grouped settings allow you to manage your studio website with precision.
               </p>
-              <p>
-                Changes are saved automatically and synchronized with the live website in real-time.
-              </p>
-              <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-xs font-medium">
-                <strong>Note:</strong> If you hide a section, the data is still preserved in the database, it just won't be visible to users.
+              <div className="p-4 rounded-xl bg-primary/10 border border-primary/20 text-primary text-xs font-medium">
+                <strong>Tip:</strong> You can hide the map if you are working remotely or shifting locations.
               </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-none shadow-xl bg-surface/50 backdrop-blur-xl overflow-hidden group">
-            <div className="h-2 w-full bg-primary" />
-            <CardContent className="pt-6">
-              <p className="text-sm font-bold text-foreground">Experimental Features</p>
-              <p className="text-xs text-muted-foreground mt-2 mb-4">New features in development. Use with caution.</p>
-              <Button variant="outline" className="w-full rounded-xl group-hover:bg-primary group-hover:text-primary-foreground transition-all">
-                Coming Soon
-              </Button>
+              <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-xs font-medium">
+                <strong>Real-time:</strong> All changes are applied instantly to the live site.
+              </div>
             </CardContent>
           </Card>
         </div>

@@ -172,16 +172,18 @@ function ContactPage() {
         </div>
       </Section>
 
-      <Section>
-        <div className="rounded-3xl overflow-hidden glass shadow-elegant">
-          <iframe
-            title="Studio location"
-            src="https://maps.google.com/maps?q=7-2-234+Kailash+Nagar,+Balkampet,+Hyderabad,+Telangana+500018&t=&z=16&ie=UTF8&iwloc=&output=embed"
-            className="w-full h-[420px] border-0 grayscale-[0.4] contrast-[1.1]"
-            loading="lazy"
-          />
-        </div>
-      </Section>
+      {settings.show_contact_map && (
+        <Section>
+          <div className="rounded-3xl overflow-hidden glass shadow-elegant">
+            <iframe
+              title="Studio location"
+              src="https://maps.google.com/maps?q=7-2-234+Kailash+Nagar,+Balkampet,+Hyderabad,+Telangana+500018&t=&z=16&ie=UTF8&iwloc=&output=embed"
+              className="w-full h-[420px] border-0 grayscale-[0.4] contrast-[1.1]"
+              loading="lazy"
+            />
+          </div>
+        </Section>
+      )}
     </SiteLayout>
   );
 }

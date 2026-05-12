@@ -9,6 +9,7 @@ export interface VisibilitySettings {
   show_team: boolean;
   show_testimonials: boolean;
   show_enquiry_form: boolean;
+  show_contact_map: boolean;
 }
 
 const DEFAULT_SETTINGS: VisibilitySettings = {
@@ -19,6 +20,7 @@ const DEFAULT_SETTINGS: VisibilitySettings = {
   show_team: true,
   show_testimonials: true,
   show_enquiry_form: true,
+  show_contact_map: true,
 };
 
 export function useSiteSettings() {
@@ -32,13 +34,18 @@ export function useSiteSettings() {
           .from('site_settings')
           .select('value')
           .eq('key', 'frontend_visibility')
-          .single();
+          .maybeSingle(); // Use maybeSingle to avoid errors on empty results
+
+        if (error) {
+          console.warn('Site settings fetch error (using defaults):', error.message);
+          return;
+        }
 
         if (data?.value) {
           setSettings(data.value as VisibilitySettings);
         }
       } catch (err) {
-        console.error('Error fetching site settings:', err);
+        console.error('Critical error fetching site settings:', err);
       } finally {
         setLoading(false);
       }
@@ -46,9 +53,10 @@ export function useSiteSettings() {
 
     fetchSettings();
 
-    // Subscribe to real-time changes
+    // Subscribe to real-time changes with a unique channel name
+    const channelId = `site_settings_${Math.random().toString(36).substring(7)}`;
     const channel = supabase
-      .channel('site_settings_changes')
+      .channel(channelId)
       .on(
         'postgres_changes',
         { 
