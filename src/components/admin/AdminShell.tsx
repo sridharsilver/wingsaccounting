@@ -1,5 +1,5 @@
 import { Link, Outlet, useRouterState, useNavigate } from "@tanstack/react-router";
-import { LayoutDashboard, Image, Briefcase, FileText, MessageSquare, Star, Palette, Settings, Bell, Search, Menu, X, LogOut, Users, Shield } from "lucide-react";
+import { LayoutDashboard, Image, Briefcase, FileText, MessageSquare, Star, Palette, Settings, Bell, Search, Menu, X, LogOut, Users, Shield, Globe } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { ThemeToggle } from "../ui/ThemeToggle";
 import { useTheme } from "@/hooks/use-theme";
