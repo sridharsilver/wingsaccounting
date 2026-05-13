@@ -75,7 +75,7 @@ serve(async (req) => {
     // Auto-retry once on 429
     while (attempts < 2) {
       response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -98,7 +98,7 @@ serve(async (req) => {
       const isQuotaError = response.status === 429 || errorText.includes('RESOURCE_EXHAUSTED') || errorText.includes('quota')
       
       const retryMatch = errorText.match(/retry in (\d+(\.\d+)?)s/)
-      const retrySeconds = retryMatch ? Math.ceil(parseFloat(retryMatch[1])) + 10 : 180
+      const retrySeconds = retryMatch ? Math.ceil(parseFloat(retryMatch[1])) + 15 : 180
 
       return new Response(JSON.stringify({ 
         reply: isQuotaError
@@ -122,7 +122,8 @@ serve(async (req) => {
     }
 
     try {
-      const parsed = JSON.parse(reply)
+      const cleanedReply = reply.replace(/```json|```/g, '').trim();
+      const parsed = JSON.parse(cleanedReply)
       return new Response(JSON.stringify({ 
         reply: parsed.reply, 
         lang: parsed.lang || "en-US" 

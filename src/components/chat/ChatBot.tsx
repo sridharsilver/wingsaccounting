@@ -16,6 +16,7 @@ interface Message {
   content: string;
   timestamp: Date;
   lang?: string;
+  isQueued?: boolean;
 }
 
 export const ChatBot: React.FC = () => {
@@ -161,11 +162,11 @@ export const ChatBot: React.FC = () => {
     }
   }, [messages, isLoading]);
 
-  const handleSend = async (customText?: string) => {
+  const handleSend = async (customText?: string, force = false) => {
     const textToSend = customText || input;
     if (!textToSend.trim() || isLoading) return;
 
-    if (rateLimitCooldown > 0) {
+    if (rateLimitCooldown > 0 && !force) {
       setQueuedMessage(textToSend);
       if (!customText) setInput("");
       return;
@@ -195,17 +196,42 @@ export const ChatBot: React.FC = () => {
       if (data?.rateLimit) {
         startCooldown(data?.retryAfter || 180);
         setQueuedMessage(textToSend);
-        setMessages(prev => prev.filter(m => m.id !== userMessage.id));
+        setMessages(prev => prev.map(m => m.content === textToSend && m.role === "user" ? { ...m, isQueued: true } : m));
         setIsLoading(false);
         return;
+      }
+
+      let responseData = data;
+      if (typeof data === 'string') {
+        try {
+          responseData = JSON.parse(data);
+        } catch (e) {
+          console.error("Could not parse data as JSON:", e);
+        }
+      }
+
+      let replyText = responseData?.reply || "I'm sorry, I'm having trouble connecting right now.";
+      let replyLang = responseData?.lang || "en-US";
+
+      // If the reply itself is a JSON string (sometimes happens with AI models), parse it
+      try {
+        const trimmedReply = typeof replyText === 'string' ? replyText.trim() : '';
+        if (trimmedReply.startsWith('{') || trimmedReply.includes('{"reply":')) {
+          const cleanedText = trimmedReply.replace(/```json|```/g, '').trim();
+          const parsed = JSON.parse(cleanedText);
+          if (parsed.reply) replyText = parsed.reply;
+          if (parsed.lang) replyLang = parsed.lang;
+        }
+      } catch (e) {
+        console.error("Error parsing AI JSON reply:", e);
       }
 
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: data?.reply || "I'm having trouble connecting to my brain. Please try again.",
+        content: replyText,
         timestamp: new Date(),
-        lang: data?.lang
+        lang: replyLang
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
@@ -226,7 +252,7 @@ export const ChatBot: React.FC = () => {
       if (isRateLimit) {
         startCooldown(180);
         setQueuedMessage(textToSend);
-        setMessages(prev => prev.filter(m => m.id !== userMessage.id));
+        setMessages(prev => prev.map(m => m.content === textToSend && m.role === "user" ? { ...m, isQueued: true } : m));
       } else {
         const errorMessage: Message = {
           id: (Date.now() + 1).toString(),
@@ -366,18 +392,28 @@ export const ChatBot: React.FC = () => {
                       )}
                       <div className="flex flex-col gap-1.5 max-w-[85%]">
                         <div className={cn(
-                          "rounded-2xl px-4 py-3 text-sm shadow-sm prose prose-sm dark:prose-invert prose-p:my-2 prose-headings:my-2 prose-a:font-bold prose-a:underline transition-all",
+                          "rounded-2xl px-4 py-3 text-sm shadow-sm prose prose-sm dark:prose-invert prose-p:my-2 prose-headings:my-2 prose-a:font-bold prose-a:underline transition-all relative",
                           message.role === "user" 
                             ? "bg-primary text-primary-foreground rounded-tr-none prose-p:text-primary-foreground prose-strong:text-primary-foreground prose-headings:text-primary-foreground prose-a:text-white shadow-primary/20" 
                             : "bg-white/60 dark:bg-zinc-800/40 border border-black/5 dark:border-white/5 rounded-tl-none message-glass"
                         )}>
+                          {message.isQueued && (
+                            <div className="absolute -top-6 right-0 flex items-center gap-1 text-[9px] font-bold text-amber-500 uppercase tracking-widest bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
+                              <Loader2 size={8} className="animate-spin" />
+                              Queued
+                            </div>
+                          )}
                           <ReactMarkdown
                             components={{
                               a: ({ node, ...props }) => {
                                 const isExternal = props.href?.startsWith("http");
-                                if (isExternal) return <a {...props} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1" />;
+                                if (isExternal) return <a {...props} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1" onClick={() => setIsOpen(false)} />;
                                 return (
-                                  <Link to={props.href as any} className="inline-flex items-center gap-1 group font-bold">
+                                  <Link 
+                                    to={props.href as any} 
+                                    className="inline-flex items-center gap-1 group font-bold text-primary hover:underline"
+                                    onClick={() => setIsOpen(false)}
+                                  >
                                     {props.children}
                                     <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
                                   </Link>
@@ -427,23 +463,54 @@ export const ChatBot: React.FC = () => {
                     ))}
                   </div>
                 )}
-                {rateLimitCooldown > 0 && (
+                {(rateLimitCooldown > 0 || (queuedMessage && isLoading)) && (
                   <motion.div
                     initial={{ opacity: 0, y: -8 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="w-full flex items-center justify-center gap-2 bg-amber-500/10 border border-amber-500/20 rounded-2xl px-4 py-2.5"
+                    className="w-full flex flex-col gap-2 bg-amber-500/10 border border-amber-500/20 rounded-2xl px-4 py-2.5"
                   >
-                    <Loader2 size={14} className="text-amber-500 animate-spin" />
-                    <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">
-                      {queuedMessage ? "Message Queued - Resuming in " : "Quota restoring in "}
-                      {Math.floor(rateLimitCooldown / 60)}:{String(rateLimitCooldown % 60).padStart(2, '0')}
-                    </span>
+                    <div className="flex items-center justify-center gap-2">
+                      <Loader2 size={14} className="text-amber-500 animate-spin" />
+                      <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">
+                        {queuedMessage 
+                          ? (rateLimitCooldown > 0 ? "Message Queued - Resuming in " : "Message Queued - Resuming...") 
+                          : "Quota restoring in "}
+                        {rateLimitCooldown > 0 && (
+                          `${Math.floor(rateLimitCooldown / 60)}:${String(rateLimitCooldown % 60).padStart(2, '0')}`
+                        )}
+                      </span>
+                    </div>
+                    {rateLimitCooldown > 0 && queuedMessage && (
+                      <div className="flex items-center justify-center gap-2 pt-1 border-t border-amber-500/10">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => handleSend(queuedMessage, true)}
+                          className="h-6 text-[9px] font-bold uppercase tracking-widest text-amber-600 hover:text-amber-700 hover:bg-amber-500/10"
+                        >
+                          Retry Now
+                        </Button>
+                        <div className="h-3 w-px bg-amber-500/20" />
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => {
+                            setQueuedMessage(null);
+                            setRateLimitCooldown(0);
+                            setMessages(prev => prev.map(m => m.isQueued ? { ...m, isQueued: false } : m));
+                          }}
+                          className="h-6 text-[9px] font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground hover:bg-black/5"
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    )}
                   </motion.div>
                 )}
                 <div className="flex w-full gap-2 items-center relative group">
                   <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/20 to-purple-500/20 rounded-2xl blur opacity-0 group-focus-within:opacity-100 transition duration-500" />
                   <Input
-                    placeholder={rateLimitCooldown > 0 ? (queuedMessage ? "Message queued..." : `Wait ${Math.floor(rateLimitCooldown / 60)}:${String(rateLimitCooldown % 60).padStart(2, '0')}...`) : isListening ? "Listening..." : "Type your message..."}
+                    placeholder={rateLimitCooldown > 0 ? (queuedMessage ? "Message queued..." : `Wait ${Math.floor(rateLimitCooldown / 60)}:${String(rateLimitCooldown % 60).padStart(2, '0')}...`) : queuedMessage ? "Resuming..." : isListening ? "Listening..." : "Type your message..."}
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleSend()}
