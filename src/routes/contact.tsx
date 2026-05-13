@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { MapPin, Phone, Mail, Clock, MessageCircle, Instagram, Facebook, Linkedin, Twitter, Send, ChevronDown } from "lucide-react";
+import { MapPin, Phone, Mail, Clock, MessageCircle, Instagram, Facebook, Linkedin, Twitter, Send, ChevronDown, User, Briefcase, FileText, Sparkles } from "lucide-react";
 import { SiteLayout } from "@/components/site/Layout";
 import { Section } from "@/components/site/Section";
 import { PageHero } from "@/components/site/PageHero";
@@ -140,8 +140,8 @@ function ContactPage() {
             ) : (
               <form onSubmit={handleSubmit} className="grid gap-5">
                 <div className="grid sm:grid-cols-2 gap-5">
-                  <Field label="Name" name="name" required />
-                  <Field label="Email" name="email" type="email" required />
+                  <Field label="Name" name="name" icon={User} placeholder="Your full name" required />
+                  <Field label="Email" name="email" icon={Mail} type="email" placeholder="hello@company.com" required />
                 </div>
                 <div className="grid sm:grid-cols-2 gap-5">
                   <Field 
@@ -157,8 +157,11 @@ function ContactPage() {
                     }
                   />
                   <div>
-                    <label className="text-xs uppercase tracking-wider text-muted-foreground">Service</label>
+                    <label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-black ml-1">Service</label>
                     <div className="relative mt-2">
+                      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground z-10 pointer-events-none">
+                        <Briefcase size={18} />
+                      </div>
                       <ServiceSelector 
                         services={services} 
                         selected={selectedService} 
@@ -171,12 +174,23 @@ function ContactPage() {
 
                 {selectedService === "other" && (
                   <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="animate-in fade-in slide-in-from-top-2 duration-300">
-                    <Field label="Custom Service" name="custom_service" placeholder="Please specify your requirement" required />
+                    <Field label="Custom Service" name="custom_service" icon={Sparkles} placeholder="Please specify your requirement" required />
                   </motion.div>
                 )}
                 <div>
-                  <label className="text-xs uppercase tracking-wider text-muted-foreground">Message</label>
-                  <textarea name="message" required rows={5} className="mt-2 w-full rounded-xl glass px-4 py-3 outline-none focus:ring-2 ring-brand/50 bg-transparent" />
+                  <label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-black ml-1">Message</label>
+                  <div className="relative mt-2">
+                    <div className="absolute left-4 top-4 text-muted-foreground z-10 pointer-events-none">
+                      <FileText size={18} />
+                    </div>
+                    <textarea 
+                      name="message" 
+                      required 
+                      rows={5} 
+                      placeholder="Tell us about your project goals and timeline..."
+                      className="w-full rounded-2xl glass pl-12 pr-4 py-3.5 outline-none focus:ring-2 ring-brand/30 bg-transparent transition-all hover:bg-white/5 border border-white/5 focus:border-brand/50 min-h-[150px]" 
+                    />
+                  </div>
                 </div>
                 <button
                   type="submit"
@@ -275,22 +289,26 @@ function ContactPage() {
   );
 }
 
-function Field({ label, prefix, ...props }: { label: string; prefix?: React.ReactNode } & React.InputHTMLAttributes<HTMLInputElement>) {
+function Field({ label, icon: Icon, prefix, ...props }: { label: string; icon?: React.ElementType; prefix?: React.ReactNode } & React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <div>
-      <label className="text-xs uppercase tracking-wider text-muted-foreground">{label}</label>
-      <div className="relative mt-2">
+      <label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-black ml-1">{label}</label>
+      <div className="relative mt-2 group">
+        {Icon && !prefix && (
+          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-brand transition-colors duration-300 z-20">
+            <Icon size={18} />
+          </div>
+        )}
         {prefix && (
           <div className="absolute left-0 top-0 bottom-0 flex items-center z-20">
             {prefix}
-            <div className="h-6 w-[1px] bg-white/10 mx-1" />
           </div>
         )}
         <input 
           {...props} 
           className={cn(
-            "w-full rounded-xl glass py-3 outline-none focus:ring-2 ring-brand/50 bg-transparent relative z-10",
-            prefix ? "pl-28 pr-4" : "px-4"
+            "w-full rounded-2xl glass py-3.5 outline-none focus:ring-2 ring-brand/30 bg-transparent relative z-10 transition-all hover:bg-white/5 border border-white/5 focus:border-brand/50",
+            prefix ? "pl-28 pr-4" : Icon ? "pl-12 pr-4" : "px-4"
           )} 
         />
       </div>
@@ -311,9 +329,9 @@ function ServiceSelector({ services, selected, onSelect }: { services: any[]; se
           e.stopPropagation();
           setIsOpen(!isOpen);
         }}
-        className="w-full flex items-center justify-between rounded-xl glass px-4 py-3 outline-none focus:ring-2 ring-brand/50 bg-transparent text-left transition-all hover:bg-white/5"
+        className="w-full flex items-center justify-between rounded-2xl glass pl-12 pr-4 py-3.5 outline-none focus:ring-2 ring-brand/30 bg-transparent text-left transition-all hover:bg-white/5 border border-white/5"
       >
-        <span className={cn("truncate pr-4", !selected && "text-muted-foreground")}>{displayValue}</span>
+        <span className={cn("truncate pr-4 text-sm font-medium", !selected && "text-muted-foreground")}>{displayValue}</span>
         <ChevronDown size={16} className={cn("transition-transform duration-200 text-muted-foreground shrink-0", isOpen && "rotate-180")} />
       </button>
 
@@ -383,9 +401,9 @@ function CountryCodeSelector({ selected, onSelect }: { selected: typeof COUNTRIE
           e.stopPropagation();
           setIsOpen(!isOpen);
         }}
-        className="h-full px-4 flex items-center gap-2 hover:bg-white/5 transition-colors rounded-l-xl text-sm font-medium focus:outline-none"
+        className="h-full pl-4 pr-3 flex items-center gap-2 hover:bg-white/5 transition-colors rounded-l-2xl text-sm font-medium focus:outline-none border-r border-white/10"
       >
-        <span className="text-base">{selected.flag}</span>
+        <span className="text-lg">{selected.flag}</span>
         <span>{selected.code}</span>
         <ChevronDown size={14} className={cn("transition-transform duration-200 text-muted-foreground", isOpen && "rotate-180")} />
       </button>
