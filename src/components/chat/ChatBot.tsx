@@ -32,7 +32,7 @@ export const ChatBot: React.FC = () => {
   ]);
   const [isLoading, setIsLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [rateLimitCooldown, setRateLimitCooldown] = useState(0); // seconds remaining
   const [queuedMessage, setQueuedMessage] = useState<string | null>(null);
