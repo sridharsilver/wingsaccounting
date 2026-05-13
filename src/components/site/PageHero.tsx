@@ -6,7 +6,7 @@ export function PageHero({ eyebrow, title, desc, children }: { eyebrow?: string;
     <section className="relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-hero" />
       <div className="absolute inset-0 grid-pattern opacity-30" />
-      <div className="relative mx-auto max-w-7xl container-px pt-10 md:pt-20 pb-20 md:pb-32">
+      <div className="relative mx-auto max-w-7xl container-px pt-10 md:pt-20 pb-12 md:pb-16">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}

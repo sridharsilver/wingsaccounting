@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { ReactNode } from "react";
 
 export function Section({ children, className = "", id }: { children: ReactNode; className?: string; id?: string }) {
-  return <section id={id} className={`mx-auto max-w-7xl container-px py-16 md:py-24 ${className}`}>{children}</section>;
+  return <section id={id} className={`mx-auto max-w-7xl container-px py-12 md:py-16 ${className}`}>{children}</section>;
 }
 
 export function SectionHeader({ eyebrow, title, subtitle, center = true }: { eyebrow?: string; title: string; subtitle?: string; center?: boolean }) {

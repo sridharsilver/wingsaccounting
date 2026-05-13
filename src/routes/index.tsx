@@ -11,9 +11,9 @@ import { useSiteSettings } from "@/hooks/use-site-settings";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Wings Graphics — Premium Printing, Branding & Web Design" },
+      { title: "Wings Design Studio — Premium Printing, Branding & Web Design" },
       { name: "description", content: "From print to pixel — premium commercial printing, branding and modern web design for ambitious brands." },
-      { property: "og:title", content: "Wings Graphics — From Print to Pixel" },
+      { property: "og:title", content: "Wings Design Studio — From Print to Pixel" },
       { property: "og:description", content: "Premium printing, branding and digital design studio." },
     ],
   }),

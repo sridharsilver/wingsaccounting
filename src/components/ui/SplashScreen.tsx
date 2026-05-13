@@ -9,7 +9,7 @@ export function SplashScreen({ onComplete }: { onComplete: () => void }) {
     const timer = setTimeout(() => {
       setIsVisible(false);
       setTimeout(onComplete, 500); // Allow exit animation to finish
-    }, 2500);
+    }, 1000);
 
     return () => clearTimeout(timer);
   }, [onComplete]);
@@ -46,7 +46,7 @@ export function SplashScreen({ onComplete }: { onComplete: () => void }) {
                 initial={{ left: "-100%" }}
                 animate={{ left: "100%" }}
                 transition={{ 
-                  duration: 2, 
+                  duration: 1, 
                   ease: "easeInOut",
                   repeat: Infinity
                 }}
@@ -57,7 +57,7 @@ export function SplashScreen({ onComplete }: { onComplete: () => void }) {
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 1, duration: 1 }}
+              transition={{ delay: 0.5, duration: 0.5 }}
               className="mt-6 text-[10px] uppercase tracking-[0.3em] text-muted-foreground font-bold"
             >
               From Print to Pixel

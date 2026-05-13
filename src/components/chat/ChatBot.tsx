@@ -274,7 +274,7 @@ export const ChatBot: React.FC = () => {
   ];
 
   return (
-    <div className="fixed bottom-6 right-6 z-[100] flex flex-col items-end gap-4 pointer-events-none">
+    <div className="fixed bottom-4 right-4 md:bottom-6 md:right-6 z-[100] flex flex-col items-end gap-4 pointer-events-none">
       <style dangerouslySetInnerHTML={{ __html: `
         .chat-scrollbar::-webkit-scrollbar { width: 4px; }
         .chat-scrollbar::-webkit-scrollbar-track { background: transparent; }
@@ -556,16 +556,16 @@ export const ChatBot: React.FC = () => {
         whileTap={{ scale: 0.95 }}
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "h-16 w-16 rounded-full flex items-center justify-center shadow-[0_20px_50px_-12px_rgba(0,0,0,0.3)] border-none pointer-events-auto transition-all duration-700 relative overflow-hidden group",
+          "h-14 w-14 md:h-16 md:w-16 rounded-full flex items-center justify-center shadow-[0_20px_50px_-12px_rgba(0,0,0,0.3)] border-none pointer-events-auto transition-all duration-700 relative overflow-hidden group",
           isOpen ? "bg-white dark:bg-zinc-900 text-foreground" : "bg-primary text-primary-foreground"
         )}
       >
         <AnimatePresence mode="wait">
           {isOpen ? (
-            <motion.div key="close" initial={{ opacity: 0, rotate: -90, scale: 0.5 }} animate={{ opacity: 1, rotate: 0, scale: 1 }} exit={{ opacity: 0, rotate: 90, scale: 0.5 }}><X size={28} /></motion.div>
+            <motion.div key="close" initial={{ opacity: 0, rotate: -90, scale: 0.5 }} animate={{ opacity: 1, rotate: 0, scale: 1 }} exit={{ opacity: 0, rotate: 90, scale: 0.5 }}><X size={24} className="md:size-7" /></motion.div>
           ) : (
             <motion.div key="open" initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.5 }} className="relative">
-              <MessageCircle size={30} />
+              <MessageCircle size={26} className="md:size-[30px]" />
               <motion.div animate={{ scale: [1, 1.4, 1], opacity: [0.5, 0, 0.5] }} transition={{ repeat: Infinity, duration: 2 }} className="absolute -top-1 -right-1 h-5 w-5 bg-primary/30 rounded-full" />
               <div className="absolute top-0 right-0 h-3 w-3 bg-red-500 border-2 border-primary rounded-full shadow-sm" />
             </motion.div>

@@ -13,8 +13,8 @@ export const WhatsAppButton: React.FC = () => {
 
   return (
     <div className={cn(
-      "fixed bottom-6 z-[100] pointer-events-none transition-all duration-500",
-      settings.show_chatbot ? "left-6" : "right-6"
+      "fixed bottom-4 md:bottom-6 z-[100] pointer-events-none transition-all duration-500",
+      settings.show_chatbot ? "left-4 md:left-6" : "right-4 md:right-6"
     )}>
       <motion.a
         href={whatsappUrl}
@@ -25,7 +25,7 @@ export const WhatsAppButton: React.FC = () => {
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         className={cn(
-          "h-14 w-14 rounded-full flex items-center justify-center shadow-lg pointer-events-auto",
+          "h-12 w-12 md:h-14 md:w-14 rounded-full flex items-center justify-center shadow-lg pointer-events-auto",
           "bg-gradient-to-br from-[#25D366] to-[#128C7E] text-white",
           "border-2 border-white/20 relative group"
         )}
@@ -34,7 +34,7 @@ export const WhatsAppButton: React.FC = () => {
         <div className="absolute inset-0 rounded-full bg-[#25D366] blur-md opacity-0 group-hover:opacity-40 transition-opacity animate-pulse" />
         
         {/* Icon */}
-        <MessageSquare size={24} className="relative z-10" />
+        <MessageSquare size={20} className="md:size-6 relative z-10" />
         
         {/* Label on hover - Dynamic positioning */}
         <div className={cn(

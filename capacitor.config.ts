@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.wingsgraphics.studio',
-  appName: 'Wings Admin',
+  appName: 'Wings Design Studio',
   webDir: 'dist',
   plugins: {
     PushNotifications: {
@@ -11,6 +11,13 @@ const config: CapacitorConfig = {
     LocalNotifications: {
       smallIcon: "ic_stat_notification",
       iconColor: "#9b4dff",
+    },
+    SplashScreen: {
+      launchShowDuration: 1000,
+      launchAutoHide: true,
+      backgroundColor: "#000000",
+      androidScaleType: "CENTER_CROP",
+      showSpinner: false,
     },
   },
 };

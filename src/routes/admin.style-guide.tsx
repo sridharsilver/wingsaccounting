@@ -13,7 +13,7 @@ function StyleGuide() {
     <>
       <PageHeader 
         title="Style Guide" 
-        desc="Visual identity system and component library for Wings Graphics." 
+        desc="Visual identity system and component library for Wings Design Studio." 
       />
 
       <div className="space-y-10">
@@ -51,7 +51,7 @@ function StyleGuide() {
             <div className="space-y-4">
               <div className="text-xs uppercase tracking-widest text-muted-foreground">Body / Inter</div>
               <p className="text-lg">Large Body - The quick brown fox jumps over the lazy dog.</p>
-              <p className="text-base text-muted-foreground">Regular Body - Wings Graphics delivers premium commercial printing, branding and web design.</p>
+              <p className="text-base text-muted-foreground">Regular Body - Wings Design Studio delivers premium commercial printing, branding and web design.</p>
               <p className="text-sm text-muted-foreground">Small Body - A studio where ink meets pixel since 2013.</p>
             </div>
           </Card>

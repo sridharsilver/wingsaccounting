@@ -17,7 +17,7 @@ export function HomeHero() {
             Premium printing<br />& design that <span className="text-gradient-brand">moves brands</span>
           </h1>
           <p className="mt-6 text-muted-foreground md:text-lg max-w-xl">
-            Wings Graphics is a full-service studio crafting commercial printing, brand identities and digital experiences for ambitious teams.
+            Wings Design Studio is a full-service studio crafting commercial printing, brand identities and digital experiences for ambitious teams.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link to="/contact" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-brand text-brand-foreground font-medium shadow-glow hover:opacity-90 transition">

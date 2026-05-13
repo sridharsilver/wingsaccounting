@@ -11,9 +11,9 @@ import { useSiteSettings } from "@/hooks/use-site-settings";
 export const Route = createFileRoute("/contact")({
   head: () => ({
     meta: [
-      { title: "Contact — Wings Graphics" },
-      { name: "description", content: "Get in touch with Wings Graphics for printing, branding and website design enquiries." },
-      { property: "og:title", content: "Contact Wings Graphics" },
+      { title: "Contact — Wings Design Studio" },
+      { name: "description", content: "Get in touch with Wings Design Studio for printing, branding and website design enquiries." },
+      { property: "og:title", content: "Contact Wings Design Studio" },
       { property: "og:description", content: "Tell us about your project." },
     ],
   }),
@@ -51,7 +51,7 @@ function ContactPage() {
 
       if (method === 'whatsapp') {
         const waNumber = settings.whatsapp_number || "919951979988";
-        const defaultMsg = settings.whatsapp_message || "Hi Wings Graphics! I'm interested in your services.";
+        const defaultMsg = settings.whatsapp_message || "Hi Wings Design Studio! I'm interested in your services.";
         const waMessage = `${defaultMsg}\n\nMy name is ${formData.name}. I'm interested in ${formData.subject || 'your services'}.\n\nMessage: ${formData.message}`;
         const waUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(waMessage)}`;
         window.open(waUrl, "_blank");

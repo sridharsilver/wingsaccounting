@@ -10,9 +10,9 @@ import { supabase } from "@/lib/supabase";
 export const Route = createFileRoute("/testimonials")({
   head: () => ({
     meta: [
-      { title: "Testimonials — Wings Graphics" },
+      { title: "Testimonials — Wings Design Studio" },
       { name: "description", content: "Real stories from brands we've helped grow with print, branding and web design." },
-      { property: "og:title", content: "Testimonials — Wings Graphics" },
+      { property: "og:title", content: "Testimonials — Wings Design Studio" },
       { property: "og:description", content: "Hear from our happy clients." },
     ],
   }),

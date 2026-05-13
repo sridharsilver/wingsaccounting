@@ -348,7 +348,7 @@ function EnquiriesPage() {
               <div className="flex flex-wrap gap-3 pt-2">
                 {selectedEnquiry.phone && (
                   <a 
-                    href={`https://wa.me/${selectedEnquiry.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Hi ${selectedEnquiry.name.split(' ')[0]}, we received your enquiry about "${selectedEnquiry.subject || 'our services'}" at Wings Graphics...`)}`} 
+                    href={`https://wa.me/${selectedEnquiry.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Hi ${selectedEnquiry.name.split(' ')[0]}, we received your enquiry about "${selectedEnquiry.subject || 'our services'}" at Wings Design Studio...`)}`} 
                     target="_blank" 
                     rel="noopener"
                     className="flex-1"

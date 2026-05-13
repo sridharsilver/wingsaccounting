@@ -10,9 +10,9 @@ import { supabase } from "@/lib/supabase";
 export const Route = createFileRoute("/blog/")({
   head: () => ({
     meta: [
-      { title: "Blog — Wings Graphics" },
+      { title: "Blog — Wings Design Studio" },
       { name: "description", content: "Insights on printing, branding, packaging, web design and marketing." },
-      { property: "og:title", content: "Blog — Wings Graphics" },
+      { property: "og:title", content: "Blog — Wings Design Studio" },
       { property: "og:description", content: "Articles on print and digital design." },
     ],
   }),
@@ -39,7 +39,7 @@ function BlogPage() {
     <SiteLayout>
       <PageHero 
         eyebrow="Insights"
-        title="The Wings Graphics blog"
+        title="The Wings Design Studio blog"
         desc="Tips, trends and ideas on print, brand and web design."
       />
       <Section>
