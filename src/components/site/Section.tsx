@@ -23,3 +23,10 @@ export function SectionHeader({ eyebrow, title, subtitle, center = true }: { eye
     </motion.div>
   );
 }
+export function SectionDivider() {
+  return (
+    <div className="relative h-px w-full overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-border to-transparent opacity-50" />
+    </div>
+  );
+}

@@ -3,7 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { ArrowRight, Printer, Palette, Globe, Sparkles, CheckCircle2, Quote, Star, Users } from "lucide-react";
 import { SiteLayout } from "@/components/site/Layout";
-import { Section, SectionHeader } from "@/components/site/Section";
+import { Section, SectionHeader, SectionDivider } from "@/components/site/Section";
 import { supabase } from "@/lib/supabase";
 import { HomeHero } from "@/components/site/HomeHero";
 import { useSiteSettings } from "@/hooks/use-site-settings";
@@ -90,42 +90,46 @@ function HomePage() {
   return (
     <SiteLayout>
       <HomeHero />
+      <SectionDivider />
 
       {/* SERVICES */}
       {settings.show_services && (
-        <Section>
-          <SectionHeader eyebrow="What we do" title="Services that span print & pixel" subtitle="A complete creative studio under one roof." />
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {services.map((s, i) => (
-              <motion.div
-                key={s.title}
-                initial={{ opacity: 0, y: 24 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: i * 0.1 }}
-                className="group relative p-8 rounded-3xl glass hover:bg-white/[0.06] transition shadow-elegant overflow-hidden flex flex-col h-full"
-              >
-                <div className="absolute -top-12 -right-12 size-40 rounded-full bg-gradient-brand opacity-0 group-hover:opacity-20 blur-2xl transition-opacity" />
-                <div className="flex-1">
-                  <div className="size-12 grid place-items-center rounded-xl bg-gradient-brand text-brand-foreground mb-6 shadow-glow">
-                    <s.icon size={22} />
+        <>
+          <Section>
+            <SectionHeader eyebrow="What we do" title="Services that span print & pixel" subtitle="A complete creative studio under one roof." />
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              {services.map((s, i) => (
+                <motion.div
+                  key={s.title}
+                  initial={{ opacity: 0, y: 24 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: i * 0.1 }}
+                  className="group relative p-8 rounded-3xl glass hover:bg-white/[0.06] transition shadow-elegant overflow-hidden flex flex-col h-full"
+                >
+                  <div className="absolute -top-12 -right-12 size-40 rounded-full bg-gradient-brand opacity-0 group-hover:opacity-20 blur-2xl transition-opacity" />
+                  <div className="flex-1">
+                    <div className="size-12 grid place-items-center rounded-xl bg-gradient-brand text-brand-foreground mb-6 shadow-glow">
+                      <s.icon size={22} />
+                    </div>
+                    <h3 className="text-xl font-bold">{s.title}</h3>
+                    <p className="mt-3 text-sm text-muted-foreground leading-relaxed">{s.desc}</p>
                   </div>
-                  <h3 className="text-xl font-bold">{s.title}</h3>
-                  <p className="mt-3 text-sm text-muted-foreground leading-relaxed">{s.desc}</p>
-                </div>
 
-                <div className="mt-8 pt-6 border-t border-white/5 flex items-center justify-between">
-                  <Link to="/services" className="inline-flex items-center gap-1 text-sm font-medium text-brand hover:gap-2 transition-all">
-                    Learn more <ArrowRight size={14} />
-                  </Link>
-                  <Link to="/contact" className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground hover:text-brand transition">
-                    Get a quote
-                  </Link>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </Section>
+                  <div className="mt-8 pt-6 border-t border-white/5 flex items-center justify-between">
+                    <Link to="/services" className="inline-flex items-center gap-1 text-sm font-medium text-brand hover:gap-2 transition-all">
+                      Learn more <ArrowRight size={14} />
+                    </Link>
+                    <Link to="/contact" className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground hover:text-brand transition">
+                      Get a quote
+                    </Link>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </Section>
+          <SectionDivider />
+        </>
       )}
 
       {/* WHY US */}
@@ -224,6 +228,7 @@ function HomePage() {
 
         </div>
       </Section>
+      <SectionDivider />
 
       {/* PORTFOLIO PREVIEW */}
       {settings.show_portfolio && featured.length > 0 && (
@@ -259,6 +264,7 @@ function HomePage() {
           </div>
         </Section>
       )}
+      <SectionDivider />
 
       {/* PROCESS */}
       <Section>
@@ -280,34 +286,38 @@ function HomePage() {
           ))}
         </div>
       </Section>
+      <SectionDivider />
 
       {/* TEAM SECTION */}
       {settings.show_team && team.length > 0 && (
-        <Section>
-          <SectionHeader eyebrow="The experts" title="Meet our creative crew" subtitle="Specialists in print, digital and brand strategy." />
-          <div className="flex flex-wrap justify-center gap-5">
-            {team.map((p: any, i: number) => (
-              <motion.div
-                key={p.id}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.08 }}
-                className="rounded-2xl glass shadow-elegant p-5 group hover:shadow-glow transition-all duration-300 w-full sm:w-[calc(50%-1.25rem)] md:w-[calc(25%-1.25rem)] max-w-[280px]"
-              >
-                <div className="aspect-square rounded-xl overflow-hidden bg-surface mb-4">
-                  {p.image_url ? (
-                    <img src={p.image_url} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-muted-foreground bg-surface-elevated"><Users size={32} /></div>
-                  )}
-                </div>
-                <div className="font-semibold text-sm">{p.name}</div>
-                <div className="text-xs text-muted-foreground">{p.role}</div>
-              </motion.div>
-            ))}
-          </div>
-        </Section>
+        <>
+          <Section>
+            <SectionHeader eyebrow="The experts" title="Meet our creative crew" subtitle="Specialists in print, digital and brand strategy." />
+            <div className="flex flex-wrap justify-center gap-5">
+              {team.map((p: any, i: number) => (
+                <motion.div
+                  key={p.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.08 }}
+                  className="rounded-2xl glass shadow-elegant p-5 group hover:shadow-glow transition-all duration-300 w-full sm:w-[calc(50%-1.25rem)] md:w-[calc(25%-1.25rem)] max-w-[280px]"
+                >
+                  <div className="aspect-square rounded-xl overflow-hidden bg-surface mb-4">
+                    {p.image_url ? (
+                      <img src={p.image_url} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-muted-foreground bg-surface-elevated"><Users size={32} /></div>
+                    )}
+                  </div>
+                  <div className="font-semibold text-sm">{p.name}</div>
+                  <div className="text-xs text-muted-foreground">{p.role}</div>
+                </motion.div>
+              ))}
+            </div>
+          </Section>
+          <SectionDivider />
+        </>
       )}
 
       {/* BLOG PREVIEW */}
