@@ -148,7 +148,7 @@ function RootComponent() {
       {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
       <Outlet />
       {!isAdmin && settings.show_chatbot && <ChatBot />}
-      {!isAdmin && settings.show_enquiry_form && <WhatsAppButton />}
+      {!isAdmin && pathname !== "/contact" && settings.show_enquiry_form && <WhatsAppButton />}
       <Toaster />
     </QueryClientProvider>
   );

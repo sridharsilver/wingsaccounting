@@ -10,20 +10,20 @@ export function HomeHero() {
       <div className="absolute inset-0 grid-pattern opacity-30" />
       <div className="relative mx-auto max-w-7xl px-12 md:px-20 pt-10 md:pt-20 pb-24 md:pb-32 grid lg:grid-cols-2 gap-12 items-center">
         <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}>
-          <span className="inline-flex items-center gap-2 px-3 py-1 text-xs uppercase tracking-widest rounded-full glass text-brand mb-6">
-            <Sparkles size={14} /> From Print to Pixel
+          <span className="inline-flex items-center gap-2 px-3 py-1 text-xs uppercase tracking-widest rounded-full glass text-gradient-brand mb-10">
+            <Sparkles size={14} className="text-brand" /> From Print to Pixel
           </span>
-          <h1 className="text-5xl md:text-7xl font-bold leading-[1.15] text-gradient pb-2">
+          <h1 className="text-5xl md:text-7xl font-bold leading-[1.15] text-gradient pb-2 drop-shadow-sm">
             Premium printing<br />& design that <span className="text-gradient-brand">moves brands</span>
           </h1>
           <p className="mt-6 text-muted-foreground md:text-lg max-w-xl">
             Wings Design Studio is a full-service studio crafting commercial printing, brand identities and digital experiences for ambitious teams.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <Link to="/contact" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-brand text-brand-foreground font-medium shadow-glow hover:opacity-90 transition">
+            <Link to="/contact" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-brand text-brand-foreground font-medium shadow-glow hover:scale-[1.02] active:scale-[0.98] transition-all">
               Get a Quote <ArrowRight size={18} />
             </Link>
-            <Link to="/portfolio" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl glass hover:bg-white/10 transition">
+            <Link to="/portfolio" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl glass shadow-elegant hover:scale-[1.02] active:scale-[0.98] hover:bg-white/10 transition-all">
               View Portfolio
             </Link>
           </div>

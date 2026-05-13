@@ -1,12 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { MapPin, Phone, Mail, Clock, MessageCircle, Instagram, Facebook, Linkedin, Twitter, Send } from "lucide-react";
+import { MapPin, Phone, Mail, Clock, MessageCircle, Instagram, Facebook, Linkedin, Twitter, Send, ChevronDown } from "lucide-react";
 import { SiteLayout } from "@/components/site/Layout";
 import { Section } from "@/components/site/Section";
 import { PageHero } from "@/components/site/PageHero";
 import { supabase } from "@/lib/supabase";
 import { useSiteSettings } from "@/hooks/use-site-settings";
+import { formatWhatsAppNumber, cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/contact")({
   head: () => ({
@@ -20,24 +21,61 @@ export const Route = createFileRoute("/contact")({
   component: ContactPage,
 });
 
+const COUNTRIES = [
+  { code: "+91", label: "India", flag: "🇮🇳" },
+  { code: "+1", label: "USA", flag: "🇺🇸" },
+  { code: "+44", label: "UK", flag: "🇬🇧" },
+  { code: "+971", label: "UAE", flag: "🇦🇪" },
+  { code: "+966", label: "Saudi Arabia", flag: "🇸🇦" },
+  { code: "+61", label: "Australia", flag: "🇦🇺" },
+  { code: "+65", label: "Singapore", flag: "🇸🇬" },
+  { code: "+49", label: "Germany", flag: "🇩🇪" },
+];
+
 function ContactPage() {
   const { settings } = useSiteSettings();
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showChoice, setShowChoice] = useState(false);
   const [formData, setFormData] = useState<any>(null);
+  const [selectedCountry, setSelectedCountry] = useState(COUNTRIES[0]);
+  const [services, setServices] = useState<any[]>([]);
+  const [selectedService, setSelectedService] = useState("");
+
+  useEffect(() => {
+    async function fetchServices() {
+      const { data, error } = await supabase
+        .from("services")
+        .select("title")
+        .eq("status", "live")
+        .order("title");
+      if (data) setServices(data);
+    }
+    fetchServices();
+  }, []);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const data = new FormData(e.currentTarget);
-    setFormData({
+    const phone = data.get("phone") as string;
+    
+    // Combine selected country code with the entered phone number for the database
+    const finalPhone = phone ? `${selectedCountry.code} ${phone.trim()}` : "";
+
+    const serviceValue = data.get("service") as string;
+    const customServiceValue = data.get("custom_service") as string;
+    const finalService = serviceValue === "other" ? customServiceValue : serviceValue;
+
+    const newFormData = {
       name: data.get("name"),
       email: data.get("email"),
-      phone: data.get("phone"),
-      subject: data.get("service"),
+      phone: finalPhone,
+      subject: finalService,
       message: data.get("message"),
       status: "new",
-    });
+    };
+
+    setFormData(newFormData);
     setShowChoice(true);
   };
 
@@ -50,7 +88,8 @@ function ContactPage() {
       if (error) throw error;
 
       if (method === 'whatsapp') {
-        const waNumber = settings.whatsapp_number || "919951979988";
+        const rawWaNumber = settings.whatsapp_number || "919951979988";
+        const waNumber = formatWhatsAppNumber(rawWaNumber);
         const defaultMsg = settings.whatsapp_message || "Hi Wings Design Studio! I'm interested in your services.";
         const waMessage = `${defaultMsg}\n\nMy name is ${formData.name}. I'm interested in ${formData.subject || 'your services'}.\n\nMessage: ${formData.message}`;
         const waUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(waMessage)}`;
@@ -105,9 +144,36 @@ function ContactPage() {
                   <Field label="Email" name="email" type="email" required />
                 </div>
                 <div className="grid sm:grid-cols-2 gap-5">
-                  <Field label="Phone" name="phone" />
-                  <Field label="Service" name="service" placeholder="e.g. Brochure printing" />
+                  <Field 
+                    label="Phone" 
+                    name="phone" 
+                    type="tel"
+                    placeholder="99519 79988" 
+                    prefix={
+                      <CountryCodeSelector 
+                        selected={selectedCountry} 
+                        onSelect={setSelectedCountry} 
+                      />
+                    }
+                  />
+                  <div>
+                    <label className="text-xs uppercase tracking-wider text-muted-foreground">Service</label>
+                    <div className="relative mt-2">
+                      <ServiceSelector 
+                        services={services} 
+                        selected={selectedService} 
+                        onSelect={setSelectedService} 
+                      />
+                      <input type="hidden" name="service" value={selectedService} required />
+                    </div>
+                  </div>
                 </div>
+
+                {selectedService === "other" && (
+                  <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="animate-in fade-in slide-in-from-top-2 duration-300">
+                    <Field label="Custom Service" name="custom_service" placeholder="Please specify your requirement" required />
+                  </motion.div>
+                )}
                 <div>
                   <label className="text-xs uppercase tracking-wider text-muted-foreground">Message</label>
                   <textarea name="message" required rows={5} className="mt-2 w-full rounded-xl glass px-4 py-3 outline-none focus:ring-2 ring-brand/50 bg-transparent" />
@@ -115,7 +181,7 @@ function ContactPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-brand text-brand-foreground font-medium shadow-glow hover:opacity-90 transition disabled:opacity-50"
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-brand text-brand-foreground font-medium shadow-glow hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50"
                 >
                   {loading ? "Processing..." : "Send Message"} <Send size={16} />
                 </button>
@@ -155,22 +221,41 @@ function ContactPage() {
             </div>
           )}
 
-          <div className="lg:col-span-2 grid gap-5">
-            <Info icon={MapPin} t="Studio" d={settings.studio_address || "SRT 12, Sanath Nagar, Hyderabad, TS 500018"} />
-            <Info icon={Phone} t="Phone" d={settings.contact_phone || "+91 9951979988"} />
-            <Info icon={Mail} t="Email" d={settings.contact_email || "hello@wingsgraphics.in"} />
-            <Info icon={Clock} t="Hours" d={settings.working_hours || "Mon–Sat · 10:00 — 19:00"} />
-            <a href={`https://wa.me/${settings.whatsapp_number || "919951979988"}?text=${encodeURIComponent(settings.whatsapp_message || "")}`} target="_blank" rel="noopener" className="flex items-center justify-between p-5 rounded-2xl bg-gradient-brand text-brand-foreground shadow-glow font-medium">
-              <span className="flex items-center gap-3"><MessageCircle size={20} /> Chat on WhatsApp</span>
-              <span>→</span>
-            </a>
-            <div className="flex gap-3">
-              <a href={settings.social_instagram} target="_blank" rel="noopener noreferrer" className="size-10 grid place-items-center rounded-full glass hover:bg-white/10 transition-all hover:scale-110" aria-label="instagram"><Instagram size={16} /></a>
-              <a href={settings.social_facebook} target="_blank" rel="noopener noreferrer" className="size-10 grid place-items-center rounded-full glass hover:bg-white/10 transition-all hover:scale-110" aria-label="facebook"><Facebook size={16} /></a>
-              <a href={settings.social_linkedin} target="_blank" rel="noopener noreferrer" className="size-10 grid place-items-center rounded-full glass hover:bg-white/10 transition-all hover:scale-110" aria-label="linkedin"><Linkedin size={16} /></a>
-              <a href={settings.social_twitter} target="_blank" rel="noopener noreferrer" className="size-10 grid place-items-center rounded-full glass hover:bg-white/10 transition-all hover:scale-110" aria-label="twitter"><Twitter size={16} /></a>
+            <div className="lg:col-span-2 flex flex-col gap-5">
+              <div className="flex-1 flex flex-col gap-4">
+                <Info icon={MapPin} t="Studio" d={settings.studio_address || "SRT 12, Sanath Nagar, Hyderabad, TS 500018"} />
+                <Info icon={Phone} t="Phone" d={settings.contact_phone || "+91 9951979988"} />
+                <Info icon={Mail} t="Email" d={settings.contact_email || "hello@wingsgraphics.in"} />
+                <Info icon={Clock} t="Hours" d={settings.working_hours || "Mon–Sat · 10:00 — 19:00"} />
+              </div>
+
+              <a 
+                href={`https://wa.me/${formatWhatsAppNumber(settings.whatsapp_number || "919951979988")}?text=${encodeURIComponent(settings.whatsapp_message || "")}`} 
+                target="_blank" 
+                rel="noopener" 
+                className="flex items-center justify-between p-6 rounded-3xl bg-gradient-to-br from-[#25D366] to-[#075E54] text-white shadow-xl shadow-green-500/20 hover:shadow-green-500/40 transition-all hover:scale-[1.02] active:scale-[0.98] group"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="size-12 rounded-2xl bg-white/20 flex items-center justify-center backdrop-blur-md group-hover:scale-110 transition-all duration-500">
+                    <MessageCircle size={28} />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[10px] uppercase tracking-[0.2em] opacity-80 font-black">Instant Quotes</span>
+                    <span className="font-bold text-xl tracking-tight">Chat on WhatsApp</span>
+                  </div>
+                </div>
+                <div className="size-10 rounded-full bg-white/10 flex items-center justify-center group-hover:translate-x-1 transition-transform backdrop-blur-sm border border-white/10">
+                  <span className="text-xl">→</span>
+                </div>
+              </a>
+
+              <div className="flex items-center gap-3 px-2">
+                <SocialIcon icon={Instagram} href={settings.social_instagram} label="instagram" brandColor="#E4405F" />
+                <SocialIcon icon={Facebook} href={settings.social_facebook} label="facebook" brandColor="#1877F2" />
+                <SocialIcon icon={Linkedin} href={settings.social_linkedin} label="linkedin" brandColor="#0A66C2" />
+                <SocialIcon icon={Twitter} href={settings.social_twitter} label="twitter" brandColor="#1DA1F2" />
+              </div>
             </div>
-          </div>
         </div>
       </Section>
 
@@ -190,23 +275,200 @@ function ContactPage() {
   );
 }
 
-function Field({ label, ...props }: { label: string } & React.InputHTMLAttributes<HTMLInputElement>) {
+function Field({ label, prefix, ...props }: { label: string; prefix?: React.ReactNode } & React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <div>
       <label className="text-xs uppercase tracking-wider text-muted-foreground">{label}</label>
-      <input {...props} className="mt-2 w-full rounded-xl glass px-4 py-3 outline-none focus:ring-2 ring-brand/50 bg-transparent" />
+      <div className="relative mt-2">
+        {prefix && (
+          <div className="absolute left-0 top-0 bottom-0 flex items-center z-20">
+            {prefix}
+            <div className="h-6 w-[1px] bg-white/10 mx-1" />
+          </div>
+        )}
+        <input 
+          {...props} 
+          className={cn(
+            "w-full rounded-xl glass py-3 outline-none focus:ring-2 ring-brand/50 bg-transparent relative z-10",
+            prefix ? "pl-28 pr-4" : "px-4"
+          )} 
+        />
+      </div>
+    </div>
+  );
+}
+
+function ServiceSelector({ services, selected, onSelect }: { services: any[]; selected: string; onSelect: (val: string) => void }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const displayValue = selected === "other" ? "Other / Custom Service" : (selected || "Select a service");
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setIsOpen(!isOpen);
+        }}
+        className="w-full flex items-center justify-between rounded-xl glass px-4 py-3 outline-none focus:ring-2 ring-brand/50 bg-transparent text-left transition-all hover:bg-white/5"
+      >
+        <span className={cn("truncate pr-4", !selected && "text-muted-foreground")}>{displayValue}</span>
+        <ChevronDown size={16} className={cn("transition-transform duration-200 text-muted-foreground shrink-0", isOpen && "rotate-180")} />
+      </button>
+
+      {isOpen && (
+        <>
+          <div 
+            className="fixed inset-0 z-[999] cursor-default" 
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsOpen(false);
+            }} 
+          />
+          <div className="absolute left-0 right-0 top-full mt-2 z-[1000] max-h-64 overflow-y-auto glass border border-white/10 rounded-2xl shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <div className="p-2 space-y-1">
+              {services.map((s) => (
+                <button
+                  key={s.title}
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onSelect(s.title);
+                    setIsOpen(false);
+                  }}
+                  className={cn(
+                    "w-full flex items-center px-3 py-2.5 rounded-xl text-sm transition-all hover:bg-white/10 active:scale-[0.98] text-left",
+                    selected === s.title ? "bg-brand/10 text-brand font-bold" : "text-foreground"
+                  )}
+                >
+                  {s.title}
+                </button>
+              ))}
+              <div className="h-[1px] bg-white/5 my-1" />
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onSelect("other");
+                  setIsOpen(false);
+                }}
+                className={cn(
+                  "w-full flex items-center px-3 py-2.5 rounded-xl text-sm transition-all hover:bg-white/10 active:scale-[0.98] text-left italic",
+                  selected === "other" ? "bg-brand/10 text-brand font-bold" : "text-brand/80"
+                )}
+              >
+                Other / Custom Service
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function CountryCodeSelector({ selected, onSelect }: { selected: typeof COUNTRIES[0]; onSelect: (c: typeof COUNTRIES[0]) => void }) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div className="relative h-full">
+      <button
+        type="button"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setIsOpen(!isOpen);
+        }}
+        className="h-full px-4 flex items-center gap-2 hover:bg-white/5 transition-colors rounded-l-xl text-sm font-medium focus:outline-none"
+      >
+        <span className="text-base">{selected.flag}</span>
+        <span>{selected.code}</span>
+        <ChevronDown size={14} className={cn("transition-transform duration-200 text-muted-foreground", isOpen && "rotate-180")} />
+      </button>
+
+      {isOpen && (
+        <>
+          <div 
+            className="fixed inset-0 z-[999] cursor-default" 
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsOpen(false);
+            }} 
+          />
+          <div className="absolute left-0 top-full mt-2 z-[1000] w-52 max-h-64 overflow-y-auto glass border border-white/10 rounded-2xl shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <div className="p-2 space-y-1">
+              {COUNTRIES.map((c) => (
+                <button
+                  key={c.code}
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onSelect(c);
+                    setIsOpen(false);
+                  }}
+                  className={cn(
+                    "w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm transition-all hover:bg-white/10 active:scale-[0.98]",
+                    selected.code === c.code ? "bg-brand/10 text-brand font-bold" : "text-foreground"
+                  )}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-base">{c.flag}</span>
+                    <span>{c.label}</span>
+                  </div>
+                  <span className="text-muted-foreground text-xs font-mono">{c.code}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
 
 function Info({ icon: Icon, t, d }: { icon: React.ElementType; t: string; d: string }) {
   return (
-    <div className="flex items-start gap-4 p-5 rounded-2xl glass">
-      <div className="size-10 grid place-items-center rounded-xl bg-gradient-brand text-brand-foreground shrink-0"><Icon size={18} /></div>
-      <div>
-        <div className="text-xs uppercase tracking-wider text-muted-foreground">{t}</div>
-        <div className="font-medium mt-0.5">{d}</div>
+    <motion.div 
+      whileHover={{ x: 5 }}
+      className="flex items-start gap-4 p-5 rounded-2xl glass border border-white/5 hover:border-brand/30 transition-all duration-300 group"
+    >
+      <div className="size-12 rounded-xl bg-white/5 flex items-center justify-center text-brand shrink-0 group-hover:scale-110 group-hover:bg-brand/10 group-hover:text-brand transition-all duration-500 border border-white/5">
+        <Icon size={20} />
       </div>
-    </div>
+      <div className="flex-1 min-w-0">
+        <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-black mb-1">{t}</div>
+        <div className="font-semibold text-sm leading-relaxed group-hover:text-foreground transition-colors line-clamp-2">{d}</div>
+      </div>
+    </motion.div>
+  );
+}
+
+function SocialIcon({ icon: Icon, href, label, brandColor }: { icon: React.ElementType; href?: string; label: string; brandColor: string }) {
+  if (!href) return null;
+  return (
+    <motion.a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={label}
+      whileHover={{ y: -4, scale: 1.1 }}
+      className="size-12 grid place-items-center rounded-2xl glass border border-white/5 transition-all duration-300 relative group overflow-hidden"
+    >
+      <div 
+        className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-300" 
+        style={{ backgroundColor: brandColor }}
+      />
+      <Icon size={20} className="relative z-10 transition-colors duration-300 group-hover:text-white" />
+      <div 
+        className="absolute bottom-0 left-0 right-0 h-0.5 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-full group-hover:translate-y-0"
+        style={{ backgroundColor: brandColor }}
+      />
+    </motion.a>
   );
 }

@@ -15,9 +15,9 @@ export function SectionHeader({ eyebrow, title, subtitle, center = true }: { eye
       className={`max-w-2xl ${center ? "mx-auto text-center" : ""} mb-12`}
     >
       {eyebrow && (
-        <span className="inline-block px-3 py-1 text-xs uppercase tracking-widest rounded-full glass text-gradient-brand font-medium mb-6">{eyebrow}</span>
+        <span className="inline-block px-3 py-1 text-xs uppercase tracking-widest rounded-full glass text-gradient-brand font-medium mb-8">{eyebrow}</span>
       )}
-      <h2 className="text-3xl md:text-5xl font-bold text-gradient leading-[1.2] py-1">{title}</h2>
+      <h2 className="text-3xl md:text-5xl font-bold text-gradient leading-[1.2] py-1 drop-shadow-sm">{title}</h2>
 
       {subtitle && <p className="mt-4 text-muted-foreground md:text-lg">{subtitle}</p>}
     </motion.div>

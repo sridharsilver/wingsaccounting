@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { MessageSquare } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, formatWhatsAppNumber } from "@/lib/utils";
 
 import { useSiteSettings } from "@/hooks/use-site-settings";
 
@@ -26,7 +26,8 @@ export const WhatsAppButton: React.FC = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const phoneNumber = settings.whatsapp_number || "919951979988";
+  const rawPhoneNumber = settings.whatsapp_number || "919951979988";
+  const phoneNumber = formatWhatsAppNumber(rawPhoneNumber);
   const message = encodeURIComponent(settings.whatsapp_message || "Hi Wings Design Studio! I'm interested in your services.");
   const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`;
 

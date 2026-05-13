@@ -14,11 +14,11 @@ export function PageHero({ eyebrow, title, desc, children }: { eyebrow?: string;
           className="max-w-4xl"
         >
           {eyebrow && (
-            <span className="inline-block px-3 py-1 text-xs uppercase tracking-widest rounded-full glass text-gradient-brand font-medium mb-8">
+            <span className="inline-block px-3 py-1 text-xs uppercase tracking-widest rounded-full glass text-gradient-brand font-medium mb-10">
               {eyebrow}
             </span>
           )}
-          <h1 className="text-4xl md:text-6xl font-bold leading-tight text-gradient">
+          <h1 className="text-4xl md:text-6xl font-bold leading-tight text-gradient drop-shadow-sm">
             {title}
           </h1>
           {desc && (

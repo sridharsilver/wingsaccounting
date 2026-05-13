@@ -324,7 +324,10 @@ function AdminSettingsPage() {
                     </h3>
                     <div className="grid gap-5 md:gap-6 p-4 md:p-6 rounded-xl md:rounded-2xl bg-foreground/5 border border-border/50">
                       <div className="space-y-2">
-                        <Label htmlFor="whatsapp_number" className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-muted-foreground">WhatsApp Number</Label>
+                        <div className="flex flex-col gap-1">
+                          <Label htmlFor="whatsapp_number" className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-muted-foreground">WhatsApp Number</Label>
+                          <p className="text-[10px] text-muted-foreground italic">10-digit numbers default to +91 (India). E.g., 9951979988</p>
+                        </div>
                         <Input 
                           id="whatsapp_number"
                           value={settings.whatsapp_number}

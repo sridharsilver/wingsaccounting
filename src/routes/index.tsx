@@ -244,16 +244,16 @@ function HomePage() {
                   alt={p.title}
                   className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent opacity-60 group-hover:opacity-80 transition" />
-                <div className="absolute bottom-6 left-6 right-6 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition duration-300">
-                  <div className="text-[10px] text-brand-purple uppercase tracking-[0.2em] font-bold mb-1">{p.category}</div>
-                  <div className="font-bold text-xl leading-tight">{p.title}</div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="absolute bottom-6 left-6 right-6 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition duration-500 text-white z-10">
+                  <div className="text-[10px] text-white/70 uppercase tracking-[0.2em] font-medium mb-1">{p.category}</div>
+                  <div className="font-bold text-xl leading-tight tracking-tight">{p.title}</div>
                 </div>
               </motion.div>
             ))}
           </div>
           <div className="mt-10 text-center">
-            <Link to="/portfolio" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl glass hover:bg-white/10 transition">
+            <Link to="/portfolio" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl glass shadow-elegant hover:scale-[1.02] active:scale-[0.98] hover:bg-white/10 transition-all">
               View all work <ArrowRight size={18} />
             </Link>
           </div>
@@ -271,7 +271,7 @@ function HomePage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
-              className="p-6 rounded-2xl glass relative overflow-hidden"
+              className="p-6 rounded-2xl glass shadow-elegant relative overflow-hidden"
             >
               <div className="text-5xl font-bold text-gradient-brand opacity-80">{s.n}</div>
               <h3 className="mt-3 font-semibold">{s.t}</h3>
@@ -293,7 +293,7 @@ function HomePage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.08 }}
-                className="rounded-2xl glass p-5 group hover:shadow-glow transition-all duration-300 w-full sm:w-[calc(50%-1.25rem)] md:w-[calc(25%-1.25rem)] max-w-[280px]"
+                className="rounded-2xl glass shadow-elegant p-5 group hover:shadow-glow transition-all duration-300 w-full sm:w-[calc(50%-1.25rem)] md:w-[calc(25%-1.25rem)] max-w-[280px]"
               >
                 <div className="aspect-square rounded-xl overflow-hidden bg-surface mb-4">
                   {p.image_url ? (
@@ -350,7 +350,7 @@ function HomePage() {
             })}
           </div>
           <div className="mt-10 text-center">
-            <Link to="/blog" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl glass hover:bg-white/10 transition">
+            <Link to="/blog" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl glass shadow-elegant hover:scale-[1.02] active:scale-[0.98] hover:bg-white/10 transition-all">
               Explore all insights <ArrowRight size={18} />
             </Link>
           </div>
@@ -365,10 +365,10 @@ function HomePage() {
             <h2 className="text-3xl md:text-5xl font-bold text-gradient leading-[1.2] py-2">Ready to make something premium?</h2>
             <p className="mt-4 text-muted-foreground max-w-xl mx-auto">Tell us about your project — print, brand or web. We'll respond within one business day.</p>
             <div className="mt-8 flex flex-wrap gap-3 justify-center">
-              <Link to="/contact" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-brand text-brand-foreground font-medium shadow-glow">
+              <Link to="/contact" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-brand text-brand-foreground font-medium shadow-glow hover:scale-[1.02] active:scale-[0.98] transition-all">
                 Start a project <ArrowRight size={18} />
               </Link>
-              <Link to="/services" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl glass">Explore services</Link>
+              <Link to="/services" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl glass shadow-elegant hover:scale-[1.02] active:scale-[0.98] hover:bg-white/10 transition-all">Explore services</Link>
             </div>
           </div>
         </div>

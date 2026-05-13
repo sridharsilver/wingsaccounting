@@ -144,8 +144,6 @@
     color: transparent;
     padding-top: 0.1em;
     padding-bottom: 0.1em;
-    margin-top: -0.1em;
-    margin-bottom: -0.1em;
   }
   .text-gradient-brand {
     background: var(--gradient-brand);
@@ -154,8 +152,6 @@
     color: transparent;
     padding-top: 0.1em;
     padding-bottom: 0.1em;
-    margin-top: -0.1em;
-    margin-bottom: -0.1em;
   }
   .bg-gradient-brand { background: var(--gradient-brand); }
   .bg-gradient-hero { background: var(--gradient-hero); }
