@@ -140,8 +140,11 @@ function AdminSettingsPage() {
       } else if (data?.value) {
         setSettings(data.value as VisibilitySettings);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error fetching settings:", err);
+      if (err.message?.includes('JWT')) {
+        setSaveStatus('error');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -179,12 +182,28 @@ function AdminSettingsPage() {
       
       setSaveStatus('success');
       setTimeout(() => setSaveStatus('idle'), 3000);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error saving settings:", err);
       setSaveStatus('error');
+      // Set a temporary error message if possible or just log it
+      if (err.code === '42P01') {
+        console.error("Table 'site_settings' not found. Please run the SQL setup script.");
+      }
     } finally {
       setIsSaving(false);
     }
+  }
+
+  if (!supabase.supabaseUrl || !supabase.supabaseKey) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] gap-4 p-6 text-center">
+        <AlertCircle className="h-12 w-12 text-destructive mb-2" />
+        <h2 className="text-xl font-bold">Configuration Missing</h2>
+        <p className="text-sm text-muted-foreground max-w-md">
+          Supabase credentials are not configured. Please check your <code className="bg-muted px-1 rounded">.env</code> file or hosting environment variables.
+        </p>
+      </div>
+    );
   }
 
   if (isLoading) {

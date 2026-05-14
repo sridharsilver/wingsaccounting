@@ -60,13 +60,19 @@ export function useSiteSettings() {
 
         if (error) {
           console.warn('Site settings fetch error (using defaults):', error.message);
+          // If the error is 'relation "site_settings" does not exist', we know the table is missing
+          if (error.code === '42P01') {
+            console.error('Table "site_settings" is missing from your Supabase database. Please run the setup SQL script.');
+          }
           return;
         }
 
         if (data?.value) {
           setSettings(data.value as VisibilitySettings);
+        } else {
+          console.log('No site settings found in DB, using defaults.');
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error('Critical error fetching site settings:', err);
       } finally {
         setLoading(false);
