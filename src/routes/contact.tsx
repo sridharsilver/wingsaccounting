@@ -12,10 +12,12 @@ import { formatWhatsAppNumber, cn } from "@/lib/utils";
 export const Route = createFileRoute("/contact")({
   head: () => ({
     meta: [
-      { title: "Contact — Wings Design Studio" },
-      { name: "description", content: "Get in touch with Wings Design Studio for printing, branding and website design enquiries." },
-      { property: "og:title", content: "Contact Wings Design Studio" },
-      { property: "og:description", content: "Tell us about your project." },
+      { title: "Contact Us — Get a Quote for Print, Brand or Web Projects" },
+      { name: "description", content: "Ready to start your next project? Reach out to Wings Design Studio for expert advice and premium solutions in printing, branding, and web design." },
+      { property: "og:title", content: "Start Your Project with Wings Design Studio" },
+      { property: "og:description", content: "Tell us about your brand vision. We'll respond with a custom estimate within 24 hours." },
+      { name: "twitter:title", content: "Contact Wings Design Studio" },
+      { name: "twitter:description", content: "Get in touch for expert printing and design solutions." },
     ],
   }),
   component: ContactPage,

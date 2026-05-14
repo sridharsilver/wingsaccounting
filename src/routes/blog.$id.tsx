@@ -7,13 +7,41 @@ import { Section } from "@/components/site/Section";
 import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/blog/$id")({
+  loader: async ({ params }) => {
+    const { data, error } = await supabase
+      .from("blog")
+      .select("*")
+      .eq("id", params.id)
+      .single();
+    
+    if (error || !data) return null;
+    return data;
+  },
+  head: ({ loaderData }) => {
+    if (!loaderData) return { title: "Article Not Found — Wings Design Studio" };
+    
+    return {
+      meta: [
+        { title: `${loaderData.title} — Wings Design Studio` },
+        { name: "description", content: loaderData.excerpt || "Read the latest insight from Wings Design Studio." },
+        { property: "og:title", content: loaderData.title },
+        { property: "og:description", content: loaderData.excerpt },
+        { property: "og:image", content: loaderData.image_url },
+        { property: "og:type", content: "article" },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: loaderData.title },
+        { name: "twitter:description", content: loaderData.excerpt },
+        { name: "twitter:image", content: loaderData.image_url },
+      ],
+    };
+  },
   component: SingleBlogPost,
 });
 
 function SingleBlogPost() {
   const { id } = Route.useParams();
-  const [post, setPost] = useState<any | null>(null);
-  const [loading, setLoading] = useState(true);
+  const post = Route.useLoaderData();
+  const [loading, setLoading] = useState(false); // No longer needed for main post
   const [related, setRelated] = useState<any[]>([]);
   const [scrollProgress, setScrollProgress] = useState(0);
 
@@ -28,29 +56,20 @@ function SingleBlogPost() {
   }, []);
 
   useEffect(() => {
-    async function loadPost() {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from("blog")
-        .select("*")
-        .eq("id", id)
-        .single();
-      
-      if (data) {
-        setPost(data);
+    async function loadRelated() {
+      if (post) {
         const { data: relData } = await supabase
           .from("blog")
           .select("*")
-          .eq("category", data.category)
+          .eq("category", post.category)
           .neq("id", id)
           .limit(3);
         if (relData) setRelated(relData);
       }
-      setLoading(false);
     }
-    loadPost();
+    loadRelated();
     window.scrollTo(0, 0);
-  }, [id]);
+  }, [id, post]);
 
   if (loading) {
     return (

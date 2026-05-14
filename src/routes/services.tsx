@@ -14,10 +14,12 @@ import { supabase } from "@/lib/supabase";
 export const Route = createFileRoute("/services")({
   head: () => ({
     meta: [
-      { title: "Services — Wings Design Studio" },
-      { name: "description", content: "Commercial printing, graphic design and website design services from Wings Design Studio." },
-      { property: "og:title", content: "Services — Wings Design Studio" },
-      { property: "og:description", content: "Print, design and web — under one roof." },
+      { title: "Our Services — Print, Branding & Digital Solutions" },
+      { name: "description", content: "Explore our creative solutions: premium offset printing, brand identity design, and custom website development. A complete studio experience." },
+      { property: "og:title", content: "Premium Design & Printing Services — Wings Design Studio" },
+      { property: "og:description", content: "Everything your brand needs, from physical print to digital pixels. Quality-focused studio services." },
+      { name: "twitter:title", content: "Creative Services by Wings Design Studio" },
+      { name: "twitter:description", content: "Explore our premium offset printing, branding, and web design solutions." },
     ],
   }),
   component: ServicesPage,

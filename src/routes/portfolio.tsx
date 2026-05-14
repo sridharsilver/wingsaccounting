@@ -10,10 +10,12 @@ import { supabase } from "@/lib/supabase";
 export const Route = createFileRoute("/portfolio")({
   head: () => ({
     meta: [
-      { title: "Portfolio — Wings Design Studio" },
-      { name: "description", content: "Selected work in print, branding, packaging, social media and websites." },
-      { property: "og:title", content: "Portfolio — Wings Design Studio" },
-      { property: "og:description", content: "A showcase of design and print projects." },
+      { title: "Portfolio — Selected Creative Projects & Printing Showcase" },
+      { name: "description", content: "Explore our diverse portfolio of premium print design, strategic branding, custom packaging, and modern website development projects." },
+      { property: "og:title", content: "Our Creative Portfolio — Wings Design Studio" },
+      { property: "og:description", content: "A showcase of premium design and print projects crafted for ambitious brands." },
+      { name: "twitter:title", content: "Wings Design Studio Portfolio" },
+      { name: "twitter:description", content: "A curated look at our projects across print, brand, and digital." },
     ],
   }),
   component: PortfolioPage,

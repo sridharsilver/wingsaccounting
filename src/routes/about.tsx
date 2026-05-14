@@ -19,10 +19,13 @@ import { supabase } from "@/lib/supabase";
 export const Route = createFileRoute("/about")({
   head: () => ({
     meta: [
-      { title: "About — Wings Design Studio" },
-      { name: "description", content: "Wings Design Studio is a premium printing and design studio with 12+ years of crafting brands across print and digital." },
-      { property: "og:title", content: "About Wings Design Studio" },
-      { property: "og:description", content: "A premium printing and design studio." },
+      { title: "About Us — The Story of Wings Design Studio" },
+      { name: "description", content: "Learn about the heritage and craft behind Wings Design Studio. 12+ years of expertise in premium printing, graphic design, and brand building." },
+      { property: "og:title", content: "About Wings Design Studio — A Decade of Craft" },
+      { property: "og:description", content: "A premium printing and design studio dedicated to quality and innovation since 2013." },
+      { property: "og:type", content: "profile" },
+      { name: "twitter:title", content: "About Wings Design Studio" },
+      { name: "twitter:description", content: "12+ years of expertise in premium printing and brand building." },
     ],
   }),
   component: AboutPage,

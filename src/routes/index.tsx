@@ -11,10 +11,13 @@ import { useSiteSettings } from "@/hooks/use-site-settings";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Wings Design Studio — Premium Printing, Branding & Web Design" },
-      { name: "description", content: "From print to pixel — premium commercial printing, branding and modern web design for ambitious brands." },
+      { title: "Wings Design Studio — Premium Printing, Branding & Digital Design" },
+      { name: "description", content: "Wings Design Studio delivers high-end commercial printing, strategic branding, and modern web design. Over 12 years of crafting excellence for ambitious brands." },
       { property: "og:title", content: "Wings Design Studio — From Print to Pixel" },
-      { property: "og:description", content: "Premium printing, branding and digital design studio." },
+      { property: "og:description", content: "Premium printing, branding and digital design studio. Elevating brands with craft and technology." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/b8cb60f6-b5d9-4c40-a0d4-b29c693523c4/id-preview-f9453e97--b2dd65e2-5a5a-4884-9255-a0ff02aa1e00.lovable.app-1778338578672.png" },
+      { name: "twitter:title", content: "Wings Design Studio — Premium Printing & Branding" },
+      { name: "twitter:description", content: "Delivering high-end commercial printing and strategic branding for ambitious brands." },
     ],
   }),
   component: HomePage,

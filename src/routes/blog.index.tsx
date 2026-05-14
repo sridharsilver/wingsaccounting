@@ -10,10 +10,12 @@ import { supabase } from "@/lib/supabase";
 export const Route = createFileRoute("/blog/")({
   head: () => ({
     meta: [
-      { title: "Blog — Wings Design Studio" },
-      { name: "description", content: "Insights on printing, branding, packaging, web design and marketing." },
-      { property: "og:title", content: "Blog — Wings Design Studio" },
-      { property: "og:description", content: "Articles on print and digital design." },
+      { title: "Insights & Blog — Design, Print & Brand Strategy Tips" },
+      { name: "description", content: "Expert insights on premium printing techniques, branding strategies, packaging trends, and modern web design from the Wings Design Studio team." },
+      { property: "og:title", content: "Wings Design Studio Insights — The Blog" },
+      { property: "og:description", content: "Tips, trends, and creative ideas from our studio to help elevate your brand." },
+      { name: "twitter:title", content: "Wings Design Studio Blog" },
+      { name: "twitter:description", content: "Expert insights on printing, branding, and web design." },
     ],
   }),
   component: BlogPage,
