@@ -19,7 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 
-export const Route = createFileRoute('/admin/settings')({
+export const Route = createFileRoute('/_app/settings')({
   component: AdminSettingsPage,
 })
 

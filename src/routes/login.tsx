@@ -62,7 +62,7 @@ function LoginPage() {
       setLoading(false);
     } else if (data.session) {
       toast.success("Welcome back!");
-      navigate({ to: "/admin" });
+      navigate({ to: "/" });
     }
   };
 

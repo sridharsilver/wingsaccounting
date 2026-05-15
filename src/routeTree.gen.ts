@@ -10,144 +10,128 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as AdminRouteImport } from './routes/admin'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as AdminIndexRouteImport } from './routes/admin.index'
-import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
-import { Route as AdminQuotationsRouteImport } from './routes/admin.quotations'
-import { Route as AdminProfileRouteImport } from './routes/admin.profile'
-import { Route as AdminProductsRouteImport } from './routes/admin.products'
-import { Route as AdminInvoicesRouteImport } from './routes/admin.invoices'
-import { Route as AdminCustomersRouteImport } from './routes/admin.customers'
+import { Route as AppRouteImport } from './routes/_app'
+import { Route as AppIndexRouteImport } from './routes/_app.index'
+import { Route as AppSettingsRouteImport } from './routes/_app.settings'
+import { Route as AppQuotationsRouteImport } from './routes/_app.quotations'
+import { Route as AppProfileRouteImport } from './routes/_app.profile'
+import { Route as AppProductsRouteImport } from './routes/_app.products'
+import { Route as AppInvoicesRouteImport } from './routes/_app.invoices'
+import { Route as AppCustomersRouteImport } from './routes/_app.customers'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminRoute = AdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
+const AppRoute = AppRouteImport.update({
+  id: '/_app',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
+const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AppRoute,
 } as any)
-const AdminIndexRoute = AdminIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminSettingsRoute = AdminSettingsRouteImport.update({
+const AppSettingsRoute = AppSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
-  getParentRoute: () => AdminRoute,
+  getParentRoute: () => AppRoute,
 } as any)
-const AdminQuotationsRoute = AdminQuotationsRouteImport.update({
+const AppQuotationsRoute = AppQuotationsRouteImport.update({
   id: '/quotations',
   path: '/quotations',
-  getParentRoute: () => AdminRoute,
+  getParentRoute: () => AppRoute,
 } as any)
-const AdminProfileRoute = AdminProfileRouteImport.update({
+const AppProfileRoute = AppProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
-  getParentRoute: () => AdminRoute,
+  getParentRoute: () => AppRoute,
 } as any)
-const AdminProductsRoute = AdminProductsRouteImport.update({
+const AppProductsRoute = AppProductsRouteImport.update({
   id: '/products',
   path: '/products',
-  getParentRoute: () => AdminRoute,
+  getParentRoute: () => AppRoute,
 } as any)
-const AdminInvoicesRoute = AdminInvoicesRouteImport.update({
+const AppInvoicesRoute = AppInvoicesRouteImport.update({
   id: '/invoices',
   path: '/invoices',
-  getParentRoute: () => AdminRoute,
+  getParentRoute: () => AppRoute,
 } as any)
-const AdminCustomersRoute = AdminCustomersRouteImport.update({
+const AppCustomersRoute = AppCustomersRouteImport.update({
   id: '/customers',
   path: '/customers',
-  getParentRoute: () => AdminRoute,
+  getParentRoute: () => AppRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/admin': typeof AdminRouteWithChildren
+  '/': typeof AppIndexRoute
   '/login': typeof LoginRoute
-  '/admin/customers': typeof AdminCustomersRoute
-  '/admin/invoices': typeof AdminInvoicesRoute
-  '/admin/products': typeof AdminProductsRoute
-  '/admin/profile': typeof AdminProfileRoute
-  '/admin/quotations': typeof AdminQuotationsRoute
-  '/admin/settings': typeof AdminSettingsRoute
-  '/admin/': typeof AdminIndexRoute
+  '/customers': typeof AppCustomersRoute
+  '/invoices': typeof AppInvoicesRoute
+  '/products': typeof AppProductsRoute
+  '/profile': typeof AppProfileRoute
+  '/quotations': typeof AppQuotationsRoute
+  '/settings': typeof AppSettingsRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
   '/login': typeof LoginRoute
-  '/admin/customers': typeof AdminCustomersRoute
-  '/admin/invoices': typeof AdminInvoicesRoute
-  '/admin/products': typeof AdminProductsRoute
-  '/admin/profile': typeof AdminProfileRoute
-  '/admin/quotations': typeof AdminQuotationsRoute
-  '/admin/settings': typeof AdminSettingsRoute
-  '/admin': typeof AdminIndexRoute
+  '/customers': typeof AppCustomersRoute
+  '/invoices': typeof AppInvoicesRoute
+  '/products': typeof AppProductsRoute
+  '/profile': typeof AppProfileRoute
+  '/quotations': typeof AppQuotationsRoute
+  '/settings': typeof AppSettingsRoute
+  '/': typeof AppIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/admin': typeof AdminRouteWithChildren
+  '/_app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
-  '/admin/customers': typeof AdminCustomersRoute
-  '/admin/invoices': typeof AdminInvoicesRoute
-  '/admin/products': typeof AdminProductsRoute
-  '/admin/profile': typeof AdminProfileRoute
-  '/admin/quotations': typeof AdminQuotationsRoute
-  '/admin/settings': typeof AdminSettingsRoute
-  '/admin/': typeof AdminIndexRoute
+  '/_app/customers': typeof AppCustomersRoute
+  '/_app/invoices': typeof AppInvoicesRoute
+  '/_app/products': typeof AppProductsRoute
+  '/_app/profile': typeof AppProfileRoute
+  '/_app/quotations': typeof AppQuotationsRoute
+  '/_app/settings': typeof AppSettingsRoute
+  '/_app/': typeof AppIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/admin'
     | '/login'
-    | '/admin/customers'
-    | '/admin/invoices'
-    | '/admin/products'
-    | '/admin/profile'
-    | '/admin/quotations'
-    | '/admin/settings'
-    | '/admin/'
+    | '/customers'
+    | '/invoices'
+    | '/products'
+    | '/profile'
+    | '/quotations'
+    | '/settings'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/'
     | '/login'
-    | '/admin/customers'
-    | '/admin/invoices'
-    | '/admin/products'
-    | '/admin/profile'
-    | '/admin/quotations'
-    | '/admin/settings'
-    | '/admin'
+    | '/customers'
+    | '/invoices'
+    | '/products'
+    | '/profile'
+    | '/quotations'
+    | '/settings'
+    | '/'
   id:
     | '__root__'
-    | '/'
-    | '/admin'
+    | '/_app'
     | '/login'
-    | '/admin/customers'
-    | '/admin/invoices'
-    | '/admin/products'
-    | '/admin/profile'
-    | '/admin/quotations'
-    | '/admin/settings'
-    | '/admin/'
+    | '/_app/customers'
+    | '/_app/invoices'
+    | '/_app/products'
+    | '/_app/profile'
+    | '/_app/quotations'
+    | '/_app/settings'
+    | '/_app/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  AdminRoute: typeof AdminRouteWithChildren
+  AppRoute: typeof AppRouteWithChildren
   LoginRoute: typeof LoginRoute
 }
 
@@ -160,97 +144,89 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin': {
-      id: '/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AdminRouteImport
+    '/_app': {
+      id: '/_app'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AppRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
+    '/_app/': {
+      id: '/_app/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
     }
-    '/admin/': {
-      id: '/admin/'
-      path: '/'
-      fullPath: '/admin/'
-      preLoaderRoute: typeof AdminIndexRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/settings': {
-      id: '/admin/settings'
+    '/_app/settings': {
+      id: '/_app/settings'
       path: '/settings'
-      fullPath: '/admin/settings'
-      preLoaderRoute: typeof AdminSettingsRouteImport
-      parentRoute: typeof AdminRoute
+      fullPath: '/settings'
+      preLoaderRoute: typeof AppSettingsRouteImport
+      parentRoute: typeof AppRoute
     }
-    '/admin/quotations': {
-      id: '/admin/quotations'
+    '/_app/quotations': {
+      id: '/_app/quotations'
       path: '/quotations'
-      fullPath: '/admin/quotations'
-      preLoaderRoute: typeof AdminQuotationsRouteImport
-      parentRoute: typeof AdminRoute
+      fullPath: '/quotations'
+      preLoaderRoute: typeof AppQuotationsRouteImport
+      parentRoute: typeof AppRoute
     }
-    '/admin/profile': {
-      id: '/admin/profile'
+    '/_app/profile': {
+      id: '/_app/profile'
       path: '/profile'
-      fullPath: '/admin/profile'
-      preLoaderRoute: typeof AdminProfileRouteImport
-      parentRoute: typeof AdminRoute
+      fullPath: '/profile'
+      preLoaderRoute: typeof AppProfileRouteImport
+      parentRoute: typeof AppRoute
     }
-    '/admin/products': {
-      id: '/admin/products'
+    '/_app/products': {
+      id: '/_app/products'
       path: '/products'
-      fullPath: '/admin/products'
-      preLoaderRoute: typeof AdminProductsRouteImport
-      parentRoute: typeof AdminRoute
+      fullPath: '/products'
+      preLoaderRoute: typeof AppProductsRouteImport
+      parentRoute: typeof AppRoute
     }
-    '/admin/invoices': {
-      id: '/admin/invoices'
+    '/_app/invoices': {
+      id: '/_app/invoices'
       path: '/invoices'
-      fullPath: '/admin/invoices'
-      preLoaderRoute: typeof AdminInvoicesRouteImport
-      parentRoute: typeof AdminRoute
+      fullPath: '/invoices'
+      preLoaderRoute: typeof AppInvoicesRouteImport
+      parentRoute: typeof AppRoute
     }
-    '/admin/customers': {
-      id: '/admin/customers'
+    '/_app/customers': {
+      id: '/_app/customers'
       path: '/customers'
-      fullPath: '/admin/customers'
-      preLoaderRoute: typeof AdminCustomersRouteImport
-      parentRoute: typeof AdminRoute
+      fullPath: '/customers'
+      preLoaderRoute: typeof AppCustomersRouteImport
+      parentRoute: typeof AppRoute
     }
   }
 }
 
-interface AdminRouteChildren {
-  AdminCustomersRoute: typeof AdminCustomersRoute
-  AdminInvoicesRoute: typeof AdminInvoicesRoute
-  AdminProductsRoute: typeof AdminProductsRoute
-  AdminProfileRoute: typeof AdminProfileRoute
-  AdminQuotationsRoute: typeof AdminQuotationsRoute
-  AdminSettingsRoute: typeof AdminSettingsRoute
-  AdminIndexRoute: typeof AdminIndexRoute
+interface AppRouteChildren {
+  AppCustomersRoute: typeof AppCustomersRoute
+  AppInvoicesRoute: typeof AppInvoicesRoute
+  AppProductsRoute: typeof AppProductsRoute
+  AppProfileRoute: typeof AppProfileRoute
+  AppQuotationsRoute: typeof AppQuotationsRoute
+  AppSettingsRoute: typeof AppSettingsRoute
+  AppIndexRoute: typeof AppIndexRoute
 }
 
-const AdminRouteChildren: AdminRouteChildren = {
-  AdminCustomersRoute: AdminCustomersRoute,
-  AdminInvoicesRoute: AdminInvoicesRoute,
-  AdminProductsRoute: AdminProductsRoute,
-  AdminProfileRoute: AdminProfileRoute,
-  AdminQuotationsRoute: AdminQuotationsRoute,
-  AdminSettingsRoute: AdminSettingsRoute,
-  AdminIndexRoute: AdminIndexRoute,
+const AppRouteChildren: AppRouteChildren = {
+  AppCustomersRoute: AppCustomersRoute,
+  AppInvoicesRoute: AppInvoicesRoute,
+  AppProductsRoute: AppProductsRoute,
+  AppProfileRoute: AppProfileRoute,
+  AppQuotationsRoute: AppQuotationsRoute,
+  AppSettingsRoute: AppSettingsRoute,
+  AppIndexRoute: AppIndexRoute,
 }
 
-const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  AdminRoute: AdminRouteWithChildren,
+  AppRoute: AppRouteWithChildren,
   LoginRoute: LoginRoute,
 }
 export const routeTree = rootRouteImport

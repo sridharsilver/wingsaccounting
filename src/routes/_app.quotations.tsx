@@ -10,7 +10,7 @@ import { QuotationForm } from "@/components/accounting/QuotationForm";
 import { format } from "date-fns";
 import { formatCurrency } from "@/lib/accounting-utils";
 
-export const Route = createFileRoute("/admin/quotations")({
+export const Route = createFileRoute("/_app/quotations")({
   component: QuotationsPage,
 });
 

@@ -12,7 +12,7 @@ import { format } from "date-fns";
 import { formatCurrency } from "@/lib/accounting-utils";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/admin/invoices")({
+export const Route = createFileRoute("/_app/invoices")({
   component: InvoicesPage,
 });
 

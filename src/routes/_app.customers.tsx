@@ -8,7 +8,7 @@ import { supabase } from "@/lib/supabase";
 import { Drawer } from "vaul";
 import { CustomerForm } from "@/components/accounting/CustomerForm";
 
-export const Route = createFileRoute("/admin/customers")({
+export const Route = createFileRoute("/_app/customers")({
   component: CustomersPage,
 });
 

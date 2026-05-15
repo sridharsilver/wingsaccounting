@@ -8,7 +8,7 @@ import { supabase } from "@/lib/supabase";
 import { format, subMonths, startOfMonth, endOfMonth } from "date-fns";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
-export const Route = createFileRoute("/admin/")({
+export const Route = createFileRoute("/_app/")({
   component: Dashboard,
 });
 

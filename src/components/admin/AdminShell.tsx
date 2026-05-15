@@ -1,40 +1,38 @@
 import { Link, Outlet, useRouterState, useNavigate } from "@tanstack/react-router";
-import { LayoutDashboard, Image, Briefcase, FileText, MessageSquare, Star, Palette, Settings, Bell, Search, Menu, X, LogOut, Users, Shield, Globe } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
+import { LayoutDashboard, Briefcase, FileText, Settings, Search, Menu, X, LogOut, Users } from "lucide-react";
+import { useState, useEffect } from "react";
 import { ThemeToggle } from "../ui/ThemeToggle";
 import { useTheme } from "@/hooks/use-theme";
 import { Logo } from "../ui/Logo";
 import { supabase } from "@/lib/supabase";
-import { LocalNotifications } from '@capacitor/local-notifications';
-import { PushNotifications } from '@capacitor/push-notifications';
 
 const NAV_GROUPS = [
   {
     label: "Sales",
     items: [
-      { to: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
-      { to: "/admin/invoices", label: "Invoices", icon: FileText },
-      { to: "/admin/quotations", label: "Quotations", icon: FileText },
+      { to: "/", label: "Dashboard", icon: LayoutDashboard, exact: true },
+      { to: "/invoices", label: "Invoices", icon: FileText },
+      { to: "/quotations", label: "Quotations", icon: FileText },
     ]
   },
   {
     label: "Management",
     items: [
-      { to: "/admin/customers", label: "Customers", icon: Users },
-      { to: "/admin/products", label: "Products & Services", icon: Briefcase },
+      { to: "/customers", label: "Customers", icon: Users },
+      { to: "/products", label: "Products & Services", icon: Briefcase },
     ]
   },
   {
     label: "Analysis",
     items: [
-      { to: "/admin/reports", label: "Reports", icon: LayoutDashboard },
+      { to: "/reports", label: "Reports", icon: LayoutDashboard },
     ]
   },
   {
     label: "System",
     items: [
-      { to: "/admin/settings", label: "Settings", icon: Settings },
-      { to: "/admin/profile", label: "Profile", icon: Users },
+      { to: "/settings", label: "Settings", icon: Settings },
+      { to: "/profile", label: "Profile", icon: Users },
     ]
   }
 ];
@@ -47,11 +45,6 @@ export function AdminShell() {
   const { theme } = useTheme();
   const isActive = (to: string, exact?: boolean) => exact ? path === to : path === to || path.startsWith(to + "/");
   
-  const [newEnquiries, setNewEnquiries] = useState<any[]>([]);
-  const [newEnquiriesCount, setNewEnquiriesCount] = useState(0);
-  const [showNotifications, setShowNotifications] = useState(false);
-  const notificationsRef = useRef<HTMLDivElement>(null);
-
   useEffect(() => {
     async function getProfile(userId: string) {
       const { data } = await supabase.from("profiles").select("*").eq("id", userId).single();
@@ -82,328 +75,110 @@ export function AdminShell() {
     navigate({ to: "/login" });
   };
 
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (notificationsRef.current && !notificationsRef.current.contains(event.target as Node)) {
-        setShowNotifications(false);
-      }
-    }
-    if (showNotifications) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [showNotifications]);
-
-  useEffect(() => {
-    const initNotifications = async () => {
-      try {
-        const permissions = await LocalNotifications.checkPermissions();
-        if (permissions.display !== 'granted') {
-          await LocalNotifications.requestPermissions();
-        }
-        await LocalNotifications.createChannel({
-          id: 'enquiries',
-          name: 'New Enquiries',
-          description: 'Notifications for new business enquiries',
-          importance: 5,
-          visibility: 1,
-          vibration: true,
-        });
-
-        // Also create it for PushNotifications (Android uses the same channels)
-        if (Capacitor.getPlatform() === 'android') {
-          await PushNotifications.createChannel({
-            id: 'enquiries',
-            name: 'New Enquiries',
-            description: 'Notifications for new business enquiries',
-            importance: 5,
-            visibility: 1,
-            vibration: true,
-          });
-        }
-
-        await LocalNotifications.removeAllListeners();
-        LocalNotifications.addListener('localNotificationActionPerformed', (notification) => {
-          console.log('Local notification action performed:', notification);
-          navigate({ to: '/admin/enquiries' });
-        });
-      } catch (err) {
-        console.error("Local notifications error", err);
-      }
-    };
-    const initPushNotifications = async () => {
-      try {
-        let permStatus = await PushNotifications.checkPermissions();
-        if (permStatus.receive === 'prompt') {
-          permStatus = await PushNotifications.requestPermissions();
-        }
-        
-        if (permStatus.receive !== 'granted') {
-          console.warn('Push notification permission not granted:', permStatus.receive);
-          return;
-        }
-
-        // Add listeners BEFORE registering
-        await PushNotifications.removeAllListeners();
-
-        PushNotifications.addListener('registration', async (token) => {
-          console.log('Push registration success, token:', token.value);
-          
-          // Save token to profile for server-side push notifications
-          const { data: { session } } = await supabase.auth.getSession();
-          if (session?.user?.id) {
-            const { error } = await supabase
-              .from('profiles')
-              .update({ push_token: token.value })
-              .eq('id', session.user.id);
-            
-            if (error) {
-              console.error('Error saving push token to profile:', error);
-            } else {
-              console.log('Push token saved to profile successfully');
-            }
-          }
-        });
-
-        PushNotifications.addListener('registrationError', (err) => {
-          console.error('Push registration error:', err.error);
-        });
-
-        PushNotifications.addListener('pushNotificationReceived', (notification) => {
-          console.log('Push received in foreground:', notification);
-        });
-
-        PushNotifications.addListener('pushNotificationActionPerformed', (notification) => {
-          console.log('Push notification action performed:', notification);
-          navigate({ to: '/admin/enquiries' });
-        });
-
-        // Handle initial notification if the app was closed
-        const delivered = await PushNotifications.getDeliveredNotifications();
-        if (delivered.notifications.length > 0) {
-          console.log('Detected pending notifications on startup');
-          // Optional: handle them if needed
-        }
-
-        await PushNotifications.register();
-      } catch (err) {
-        console.error("Push notifications initialization error:", err);
-      }
-    };
-
-    initNotifications();
-    initPushNotifications();
-
-    fetchNewEnquiries();
-
-    const channel = supabase
-      .channel('public:enquiries_global')
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'enquiries' },
-        (payload) => {
-          console.log("Global new enquiry:", payload);
-          LocalNotifications.schedule({
-            notifications: [
-              {
-                title: "New Enquiry Received!",
-                body: `${payload.new.name} is interested in ${payload.new.subject || 'your services'}`,
-                id: Math.floor(Date.now() / 1000),
-                channelId: 'enquiries',
-                smallIcon: 'ic_stat_notification',
-                largeIcon: 'ic_launcher',
-                iconColor: '#9b4dff',
-              }
-            ]
-          }).catch(err => console.error("Error scheduling notification", err));
-          fetchNewEnquiries();
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'enquiries' },
-        () => fetchNewEnquiries()
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
-
-  async function fetchNewEnquiries() {
-    const { data, count, error } = await supabase
-      .from('enquiries')
-      .select('*', { count: 'exact' })
-      .eq('status', 'new')
-      .order('created_at', { ascending: false })
-      .limit(5);
-      
-    if (!error && data) {
-      setNewEnquiries(data);
-      setNewEnquiriesCount(count || 0);
-    }
-  }
-
   return (
-    <div className="min-h-screen bg-background">
-      {/* Sidebar */}
-      <aside className={`fixed inset-y-0 left-0 z-40 w-80 lg:w-64 border-r border-border bg-surface transform transition-transform lg:translate-x-0 ${open ? "translate-x-0" : "-translate-x-full"}`}>
-        <div className="h-16 px-5 flex items-center justify-between border-b border-border">
-          <Link to="/admin" onClick={() => setOpen(false)} className="flex items-center gap-2">
-            <Logo className="h-10 lg:h-9" />
-          </Link>
-          <button onClick={() => setOpen(false)} className="lg:hidden p-2 rounded-xl hover:bg-foreground/5 text-muted-foreground"><X size={24} /></button>
-        </div>
-        <nav className="p-3 space-y-6">
-          {NAV_GROUPS.map((group) => {
-            const isSuperAdmin = user?.full_name === "Sridhar Silver";
-            const filteredItems = group.items.filter(item => {
-              if (!item.permission || isSuperAdmin) return true;
-              return Array.isArray(user?.permissions) && user.permissions.includes(item.permission);
-            });
-
-            if (filteredItems.length === 0) return null;
-
-            return (
-              <div key={group.label} className="space-y-1.5">
-                <div className="px-3 text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/50 mb-2">
-                  {group.label}
-                </div>
-                <div className="space-y-1">
-                  {filteredItems.map((n) => {
-                    const active = isActive(n.to, n.exact);
-                    return (
-                      <Link
-                        key={n.to}
-                        to={n.to}
-                        onClick={() => setOpen(false)}
-                        className={`flex items-center gap-3 px-4 py-3 text-base font-medium rounded-xl transition ${active ? "bg-gradient-brand text-brand-foreground shadow-glow" : "text-muted-foreground hover:text-foreground hover:bg-foreground/5"}`}
-                      >
-                        <n.icon size={16} /> <span className="flex-1">{n.label}</span>
-                        {n.badge === "newEnquiriesCount" && newEnquiriesCount > 0 && (
-                          <span className={`px-2 py-0.5 text-xs font-bold rounded-full ${active ? 'bg-white text-brand' : 'bg-brand text-white'}`}>
-                            {newEnquiriesCount}
-                          </span>
-                        )}
-                      </Link>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })}
-        </nav>
-        <div className="absolute bottom-4 inset-x-3 space-y-2">
-          <button 
-            onClick={() => {
-              handleSignOut();
-              setOpen(false);
-            }} 
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-colors font-semibold"
-          >
-            <LogOut size={16} /> Sign Out
-          </button>
-          <Link to="/" onClick={() => setOpen(false)} className="block text-center px-4 py-3 text-sm rounded-xl glass text-muted-foreground hover:text-foreground font-semibold">← Back to website</Link>
-        </div>
-      </aside>
-      
-      {/* Sidebar Overlay */}
+    <div className={`min-h-screen flex ${theme === 'dark' ? 'dark bg-background text-foreground' : 'bg-background text-foreground'}`}>
+      {/* Mobile Sidebar Overlay */}
       {open && (
         <div 
-          className="fixed inset-0 bg-black/50 z-30 lg:hidden backdrop-blur-sm animate-in fade-in duration-300"
+          className="fixed inset-0 bg-black/40 z-40 lg:hidden backdrop-blur-sm"
           onClick={() => setOpen(false)}
         />
       )}
 
+      {/* Sidebar */}
+      <aside className={`
+        fixed inset-y-0 left-0 z-50 w-72 bg-surface border-r border-border flex flex-col transition-transform duration-300 lg:translate-x-0 lg:static
+        ${open ? "translate-x-0" : "-translate-x-full"}
+      `}>
+        <div className="p-6 flex items-center justify-between border-b border-border">
+          <Link to="/" onClick={() => setOpen(false)} className="flex items-center gap-2 group">
+            <div className="size-10 rounded-xl bg-gradient-brand shadow-glow grid place-items-center group-hover:scale-105 transition-transform">
+              <Logo className="size-6 text-white" />
+            </div>
+            <div className="flex flex-col">
+              <span className="font-black text-xl tracking-tighter uppercase leading-none">Wings</span>
+              <span className="text-[10px] font-bold tracking-[0.2em] text-muted-foreground/60 uppercase">Accounting</span>
+            </div>
+          </Link>
+          <button onClick={() => setOpen(false)} className="lg:hidden p-3 hover:bg-foreground/5 rounded-xl transition-colors">
+            <X size={24} />
+          </button>
+        </div>
 
-      <div className="lg:pl-64">
-        <header className="h-16 sticky top-0 z-30 border-b border-border bg-surface/70 backdrop-blur-xl flex items-center justify-between px-4 md:px-6">
-          <div className="flex items-center gap-3">
-            <button onClick={() => setOpen(true)} className="lg:hidden p-2.5 rounded-xl hover:bg-foreground/5 text-muted-foreground"><Menu size={24} /></button>
-            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg glass w-80">
-              <Search size={16} className="text-muted-foreground" />
-              <input className="bg-transparent outline-none text-sm w-full" placeholder="Search…" />
+        <nav className="flex-1 overflow-y-auto p-4 space-y-8 scrollbar-hide">
+          {NAV_GROUPS.map((group) => (
+            <div key={group.label}>
+              <div className="px-3 mb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60">{group.label}</div>
+              <div className="space-y-1">
+                {group.items.map((item) => (
+                  <Link
+                    key={item.to}
+                    to={item.to}
+                    onClick={() => setOpen(false)}
+                    className={`
+                      flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all group
+                      ${isActive(item.to, item.exact) 
+                        ? "bg-gradient-brand text-brand-foreground shadow-glow" 
+                        : "text-muted-foreground hover:bg-foreground/5 hover:text-foreground"}
+                    `}
+                  >
+                    <item.icon size={18} className={`transition-transform duration-300 ${isActive(item.to, item.exact) ? "scale-110" : "group-hover:scale-110 opacity-70 group-hover:opacity-100"}`} />
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ))}
+        </nav>
+
+        <div className="p-4 border-t border-border mt-auto">
+          <button 
+            onClick={handleSignOut}
+            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm font-medium text-red-500 hover:bg-red-500/10 transition-all group"
+          >
+            <LogOut size={18} className="transition-transform group-hover:-translate-x-1" />
+            Sign Out
+          </button>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Top Header */}
+        <header className="h-16 bg-surface/80 backdrop-blur-md border-b border-border flex items-center justify-between px-4 sticky top-0 z-30 lg:px-8">
+          <div className="flex items-center gap-2 sm:gap-4">
+            <button onClick={() => setOpen(true)} className="p-2.5 hover:bg-foreground/5 rounded-xl transition-colors lg:hidden">
+              <Menu size={24} />
+            </button>
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-foreground/5 border border-border text-muted-foreground group focus-within:ring-2 focus-within:ring-brand focus-within:bg-background transition-all">
+              <Search size={16} className="group-focus-within:text-brand" />
+              <input type="text" placeholder="Quick search..." className="bg-transparent border-none text-sm outline-none w-48 lg:w-64" />
             </div>
           </div>
-          <div className="flex items-center gap-3 relative">
+
+          <div className="flex items-center gap-1 sm:gap-4">
             <ThemeToggle />
-            
-            <div className="relative" ref={notificationsRef}>
-              <button 
-                onClick={() => setShowNotifications(!showNotifications)}
-                className="size-9 grid place-items-center rounded-full glass hover:bg-foreground/10 relative" 
-                aria-label="Notifications"
-              >
-                <Bell size={16} />
-                {newEnquiriesCount > 0 && (
-                  <span className="absolute -top-1 -right-1 size-4 rounded-full bg-red-500 text-[10px] font-bold text-white flex items-center justify-center shadow-sm">
-                    {newEnquiriesCount}
-                  </span>
-                )}
-              </button>
-
-              {showNotifications && (
-                <div className="absolute right-0 mt-2 w-80 bg-surface border border-border shadow-xl rounded-xl z-50 overflow-hidden animate-in slide-in-from-top-2 fade-in duration-200">
-                  <div className="p-3 border-b border-border bg-foreground/5 font-semibold text-sm flex justify-between items-center">
-                    <div className="flex items-center gap-2">
-                      Notifications
-                      {newEnquiriesCount > 0 && <span className="text-xs text-brand bg-brand/10 px-2 py-0.5 rounded-full">{newEnquiriesCount} New</span>}
-                    </div>
-                    <button 
-                      onClick={() => setShowNotifications(false)} 
-                      className="text-muted-foreground hover:text-foreground p-1 rounded-md hover:bg-foreground/10 transition-colors"
-                      title="Close notifications"
-                    >
-                      <X size={14} />
-                    </button>
-                  </div>
-                  <div className="max-h-[300px] overflow-y-auto">
-                    {newEnquiries.length > 0 ? (
-                      newEnquiries.map(enq => (
-                        <Link 
-                          key={enq.id} 
-                          to="/admin/enquiries" 
-                          onClick={() => setShowNotifications(false)}
-                          className="block p-3 border-b border-border hover:bg-foreground/5 transition-colors"
-                        >
-                          <div className="text-sm font-medium">{enq.name}</div>
-                          <div className="text-xs text-brand font-medium mt-0.5">{enq.subject || "New Enquiry"}</div>
-                          <div className="text-xs text-muted-foreground mt-1 line-clamp-2">{enq.message}</div>
-                        </Link>
-                      ))
-                    ) : (
-                      <div className="p-6 text-center text-sm text-muted-foreground">
-                        No new notifications.
-                      </div>
-                    )}
-                  </div>
-                  <Link 
-                    to="/admin/enquiries" 
-                    onClick={() => setShowNotifications(false)}
-                    className="block p-3 text-center text-xs font-medium text-brand hover:bg-foreground/5 bg-surface transition-colors"
-                  >
-                    View all enquiries
-                  </Link>
-                </div>
-              )}
-            </div>
-
+            <div className="h-8 w-px bg-border mx-1 hidden sm:block" />
             <Link 
-              to="/admin/profile" 
-              className="size-9 rounded-full bg-gradient-brand grid place-items-center text-brand-foreground text-xs font-semibold hover:brightness-110 transition-all shadow-glow overflow-hidden"
+              to="/profile" 
+              className="flex items-center gap-2 p-1 rounded-xl hover:bg-foreground/5 transition-all group"
             >
-              {user?.avatar_url ? (
-                <img src={user.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
-              ) : (
-                (user?.full_name?.[0] || user?.email?.[0] || "W").toUpperCase()
-              )}
+              <div className="size-9 sm:size-8 rounded-xl bg-gradient-brand grid place-items-center text-brand-foreground font-bold text-xs shadow-glow group-hover:scale-105 transition-transform overflow-hidden">
+                {user?.avatar_url ? (
+                  <img src={user.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  (user?.full_name?.[0] || user?.email?.[0] || "A").toUpperCase()
+                )}
+              </div>
+              <div className="hidden md:block text-left">
+                <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground leading-none mb-0.5">Admin</div>
+                <div className="text-xs font-bold leading-none truncate max-w-[100px]">{user?.full_name || "Account"}</div>
+              </div>
             </Link>
           </div>
         </header>
-        <main className="p-6 md:p-8">
+
+        <main className="flex-1 p-6 lg:p-8 bg-background/50 overflow-x-hidden overflow-y-auto">
           <Outlet />
         </main>
       </div>

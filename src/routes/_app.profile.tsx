@@ -11,7 +11,7 @@ import { User, Mail, Lock, Shield, Calendar, LogOut, Camera, Phone } from "lucid
 import Cropper from "react-easy-crop";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
-export const Route = createFileRoute("/admin/profile")({
+export const Route = createFileRoute("/_app/profile")({
   component: ProfilePage,
 });
 

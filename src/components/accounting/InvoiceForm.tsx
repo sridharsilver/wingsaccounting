@@ -44,7 +44,7 @@ export function InvoiceForm({ initialData, onSuccess, onCancel }: InvoiceFormPro
   const { register, control, handleSubmit, setValue, watch, formState: { errors } } = useForm<InvoiceFormValues>({
     resolver: zodResolver(invoiceSchema),
     defaultValues: initialData || {
-      invoice_number: `INV-${Date.now().toString().slice(-6)}`,
+      invoice_number: "",
       date: new Date().toISOString().split("T")[0],
       gst_type: "CGST_SGST",
       items: [{ description: "", qty: 1, rate: 0, gst_rate: 18, amount: 0 }],
@@ -70,10 +70,17 @@ export function InvoiceForm({ initialData, onSuccess, onCancel }: InvoiceFormPro
 
       if (custRes.data) setCustomers(custRes.data);
       if (prodRes.data) setProducts(prodRes.data);
-      if (setRes.data) setSellerSettings(setRes.data);
+      if (setRes.data) {
+        setSellerSettings(setRes.data);
+        if (!initialData) {
+          const nextNum = setRes.data.next_invoice_number || 1;
+          const prefix = setRes.data.invoice_prefix || "INV-";
+          setValue("invoice_number", `${prefix}${nextNum.toString().padStart(4, "0")}`);
+        }
+      }
     }
     fetchData();
-  }, []);
+  }, [setValue, initialData]);
 
   // Auto-set GST type based on customer state
   useEffect(() => {
@@ -122,6 +129,14 @@ export function InvoiceForm({ initialData, onSuccess, onCancel }: InvoiceFormPro
         .insert(itemsPayload);
 
       if (itemsError) throw itemsError;
+
+      // Increment next invoice number in settings
+      if (!initialData && sellerSettings) {
+        await supabase
+          .from("settings")
+          .update({ next_invoice_number: (sellerSettings.next_invoice_number || 1) + 1 })
+          .eq("id", sellerSettings.id);
+      }
 
       toast.success("Invoice created successfully");
       onSuccess();
@@ -182,8 +197,9 @@ export function InvoiceForm({ initialData, onSuccess, onCancel }: InvoiceFormPro
           </button>
         </div>
 
-        <div className="overflow-x-auto rounded-2xl border border-border">
-          <table className="w-full text-left border-collapse">
+        <div className="rounded-2xl border border-border overflow-hidden">
+          {/* Desktop Table Header */}
+          <table className="w-full text-left border-collapse hidden md:table">
             <thead className="bg-foreground/5 text-xs font-bold uppercase tracking-widest text-muted-foreground">
               <tr>
                 <th className="p-4 w-1/3">Product / Description</th>
@@ -224,7 +240,7 @@ export function InvoiceForm({ initialData, onSuccess, onCancel }: InvoiceFormPro
                     {formatCurrency(Number(watchedItems?.[index]?.qty || 0) * Number(watchedItems?.[index]?.rate || 0))}
                   </td>
                   <td className="p-4">
-                    <button type="button" onClick={() => remove(index)} className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors opacity-0 group-hover:opacity-100">
+                    <button type="button" onClick={() => remove(index)} className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors">
                       <Trash2 size={16} />
                     </button>
                   </td>
@@ -232,6 +248,58 @@ export function InvoiceForm({ initialData, onSuccess, onCancel }: InvoiceFormPro
               ))}
             </tbody>
           </table>
+
+          {/* Mobile Card List */}
+          <div className="md:hidden divide-y divide-border">
+            {fields.map((field, index) => (
+              <div key={field.id} className="p-4 space-y-4 bg-surface/30">
+                <div className="flex justify-between items-start gap-4">
+                  <div className="flex-1 space-y-2">
+                    <select 
+                      onChange={(e) => handleProductSelect(index, e.target.value)}
+                      className="w-full p-3 rounded-xl border border-border bg-surface text-sm outline-none"
+                    >
+                      <option value="">Select a Product</option>
+                      {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                    </select>
+                    <input {...register(`items.${index}.description`)} className="w-full p-3 rounded-xl border border-border bg-surface text-sm outline-none" placeholder="Item description..." />
+                  </div>
+                  <button type="button" onClick={() => remove(index)} className="p-3 text-red-500 bg-red-500/10 rounded-xl">
+                    <Trash2 size={18} />
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold uppercase text-muted-foreground ml-1">HSN Code</label>
+                    <input {...register(`items.${index}.hsn_code`)} className="w-full p-3 rounded-xl border border-border bg-surface text-sm outline-none" placeholder="HSN" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold uppercase text-muted-foreground ml-1">GST %</label>
+                    <input type="number" {...register(`items.${index}.gst_rate`)} className="w-full p-3 rounded-xl border border-border bg-surface text-sm outline-none" placeholder="18" />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold uppercase text-muted-foreground ml-1">Quantity</label>
+                    <input type="number" step="any" {...register(`items.${index}.qty`)} className="w-full p-3 rounded-xl border border-border bg-surface text-sm outline-none" placeholder="0" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold uppercase text-muted-foreground ml-1">Rate</label>
+                    <input type="number" step="any" {...register(`items.${index}.rate`)} className="w-full p-3 rounded-xl border border-border bg-surface text-sm outline-none" placeholder="0.00" />
+                  </div>
+                </div>
+
+                <div className="flex justify-between items-center pt-2">
+                  <span className="text-xs font-bold text-muted-foreground uppercase">Item Total</span>
+                  <span className="text-lg font-black text-brand">
+                    {formatCurrency(Number(watchedItems?.[index]?.qty || 0) * Number(watchedItems?.[index]?.rate || 0))}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
