@@ -6,17 +6,8 @@ import {
   useRouter,
   HeadContent,
   Scripts,
-  useRouterState,
-  useNavigate
 } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { Capacitor } from "@capacitor/core";
 import { Toaster } from "@/components/ui/sonner";
-import { SplashScreen } from "@/components/ui/SplashScreen";
-import { supabase } from "@/lib/supabase";
-import { ChatBot } from "@/components/chat/ChatBot";
-import { WhatsAppButton } from "@/components/chat/WhatsAppButton";
-import { useSiteSettings } from "@/hooks/use-site-settings";
 
 import appCss from "../styles.css?url";
 
@@ -82,17 +73,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, maximum-scale=5" },
-      { title: "Wings Design Studio — Premium Printing, Branding & Web Design" },
-      { name: "description", content: "Wings Design Studio delivers commercial printing, graphic design, branding and modern web design for ambitious brands." },
-      { name: "author", content: "Wings Design Studio" },
+      { title: "Wings Accounting — Modern GST Invoicing" },
+      { name: "description", content: "Wings Accounting delivers professional GST invoicing and business management." },
       { name: "theme-color", content: "#9b4dff" },
-      { name: "robots", content: "index, follow" },
-      { property: "og:site_name", content: "Wings Design Studio" },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@WingsDesign" },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/b8cb60f6-b5d9-4c40-a0d4-b29c693523c4/id-preview-f9453e97--b2dd65e2-5a5a-4884-9255-a0ff02aa1e00.lovable.app-1778338578672.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/b8cb60f6-b5d9-4c40-a0d4-b29c693523c4/id-preview-f9453e97--b2dd65e2-5a5a-4884-9255-a0ff02aa1e00.lovable.app-1778338578672.png" },
+      { name: "robots", content: "noindex, nofollow" },
     ],
     links: [
       {
@@ -123,32 +107,10 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const navigate = useNavigate();
-  const [showSplash, setShowSplash] = useState(true);
-
-  useEffect(() => {
-    // If running as a native app (Android/APK), handle redirects while splash is showing
-    if (Capacitor.isNativePlatform() && pathname === "/") {
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session) {
-          navigate({ to: "/admin" });
-        } else {
-          navigate({ to: "/login" });
-        }
-      });
-    }
-  }, [pathname, navigate]);
-
-  const { settings } = useSiteSettings();
-  const isAdmin = pathname.startsWith("/admin") || pathname === "/login";
 
   return (
     <QueryClientProvider client={queryClient}>
-      {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
       <Outlet />
-      {!isAdmin && settings.show_chatbot && <ChatBot />}
-      {!isAdmin && pathname !== "/contact" && settings.show_enquiry_form && <WhatsAppButton />}
       <Toaster />
     </QueryClientProvider>
   );

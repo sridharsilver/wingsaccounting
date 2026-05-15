@@ -10,25 +10,31 @@ import { PushNotifications } from '@capacitor/push-notifications';
 
 const NAV_GROUPS = [
   {
-    label: "Management",
+    label: "Sales",
     items: [
       { to: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
-      { to: "/admin/portfolio", label: "Portfolio", icon: Image, permission: "portfolio" },
-      { to: "/admin/services", label: "Services", icon: Briefcase, permission: "services" },
-      { to: "/admin/blog", label: "Blog", icon: FileText, permission: "blog" },
-      { to: "/admin/enquiries", label: "Enquiries", icon: MessageSquare, badge: "newEnquiriesCount", permission: "enquiries" },
-      { to: "/admin/forms", label: "Form Builder", icon: Globe, permission: "enquiries" },
-      { to: "/admin/team", label: "Team", icon: Users, permission: "team" },
-      { to: "/admin/testimonials", label: "Testimonials", icon: Star, permission: "testimonials" },
+      { to: "/admin/invoices", label: "Invoices", icon: FileText },
+      { to: "/admin/quotations", label: "Quotations", icon: FileText },
+    ]
+  },
+  {
+    label: "Management",
+    items: [
+      { to: "/admin/customers", label: "Customers", icon: Users },
+      { to: "/admin/products", label: "Products & Services", icon: Briefcase },
+    ]
+  },
+  {
+    label: "Analysis",
+    items: [
+      { to: "/admin/reports", label: "Reports", icon: LayoutDashboard },
     ]
   },
   {
     label: "System",
     items: [
-      { to: "/admin/users", label: "User Management", icon: Shield, permission: "users" },
-      { to: "/admin/settings", label: "Site Settings", icon: Settings, permission: "settings" },
-      { to: "/admin/profile", label: "Profile Settings", icon: Settings },
-      { to: "/admin/style-guide", label: "Style Guide", icon: Palette, permission: "style-guide" },
+      { to: "/admin/settings", label: "Settings", icon: Settings },
+      { to: "/admin/profile", label: "Profile", icon: Users },
     ]
   }
 ];
