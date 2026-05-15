@@ -184,7 +184,7 @@ export function AdminShell() {
       </div>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 h-20 bg-surface/80 backdrop-blur-xl border-t border-border z-40 px-4 flex items-center justify-between safe-area-pb">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 h-20 bg-surface/80 backdrop-blur-xl border-t border-border z-50 px-4 flex items-center justify-between safe-area-pb">
         {NAV_GROUPS[0].items.slice(0, 2).concat(NAV_GROUPS[1].items.slice(0, 1)).concat(NAV_GROUPS[3].items.slice(0, 1)).map((item) => {
           const active = isActive(item.to, item.exact);
           return (
