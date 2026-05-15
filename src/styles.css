@@ -165,6 +165,16 @@
       linear-gradient(90deg, oklch(var(--foreground) / 0.04) 1px, transparent 1px);
     background-size: 48px 48px;
   }
+  .safe-area-pb {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
 }
 
 @keyframes float {
