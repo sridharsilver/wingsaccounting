@@ -178,10 +178,29 @@ export function AdminShell() {
           </div>
         </header>
 
-        <main className="flex-1 p-6 lg:p-8 bg-background/50 overflow-x-hidden overflow-y-auto">
+        <main className="flex-1 p-6 lg:p-8 bg-background/50 overflow-x-hidden overflow-y-auto pb-24 lg:pb-8">
           <Outlet />
         </main>
       </div>
+
+      {/* Mobile Bottom Navigation */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 h-20 bg-surface/80 backdrop-blur-xl border-t border-border z-50 px-4 flex items-center justify-between safe-area-pb">
+        {NAV_GROUPS[0].items.slice(0, 2).concat(NAV_GROUPS[1].items.slice(0, 1)).concat(NAV_GROUPS[3].items.slice(0, 1)).map((item) => {
+          const active = isActive(item.to, item.exact);
+          return (
+            <Link
+              key={item.to}
+              to={item.to}
+              className={`flex flex-col items-center justify-center gap-1.5 flex-1 transition-all ${active ? "text-brand" : "text-muted-foreground"}`}
+            >
+              <div className={`p-1.5 rounded-xl transition-all ${active ? "bg-brand/10 scale-110" : "group-hover:scale-110"}`}>
+                <item.icon size={22} strokeWidth={active ? 2.5 : 2} />
+              </div>
+              <span className="text-[10px] font-black uppercase tracking-tighter">{item.label.split(' ')[0]}</span>
+            </Link>
+          );
+        })}
+      </nav>
     </div>
   );
 }
