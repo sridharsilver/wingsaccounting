@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { Trash2, Edit2, LucideIcon } from "lucide-react";
+import { Trash2, Edit2, LucideIcon, FileText } from "lucide-react";
 import { AdminCard } from "./AdminCard";
 
 interface Column {
@@ -93,10 +93,14 @@ export function DataTable({
                 </tr>
               ))
             ) : (
-              <tr>
-                <td colSpan={columns.length + 1} className="py-20 text-center">
-                  {Icon && <Icon className="size-12 text-muted-foreground/20 mx-auto mb-4" />}
-                  <p className="text-muted-foreground font-medium">{emptyMessage}</p>
+              <tr className="block lg:table-row">
+                <td colSpan={columns.length + 1} className="block lg:table-cell py-24 text-center w-full">
+                  <div className="flex flex-col items-center justify-center space-y-4 opacity-40">
+                    <div className="size-20 rounded-full bg-foreground/5 grid place-items-center mb-2">
+                      {Icon ? <Icon size={40} /> : <FileText size={40} />}
+                    </div>
+                    <p className="text-sm font-black uppercase tracking-[0.2em] text-muted-foreground">{emptyMessage}</p>
+                  </div>
                 </td>
               </tr>
             )}
