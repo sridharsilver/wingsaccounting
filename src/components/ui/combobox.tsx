@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Check, ChevronsUpDown, Search } from "lucide-react";
+import { Check, ChevronsUpDown, Search, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,6 +26,7 @@ interface ComboboxProps {
   searchPlaceholder?: string;
   emptyText?: string;
   className?: string;
+  allowCustom?: boolean;
 }
 
 export function Combobox({
@@ -36,8 +37,10 @@ export function Combobox({
   searchPlaceholder = "Search...",
   emptyText = "No results found.",
   className,
+  allowCustom = false,
 }: ComboboxProps) {
   const [open, setOpen] = React.useState(false);
+  const [searchValue, setSearchValue] = React.useState("");
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -65,9 +68,24 @@ export function Combobox({
             <CommandInput 
               placeholder={searchPlaceholder} 
               className="h-11 border-none focus:ring-0 bg-transparent"
+              value={searchValue}
+              onValueChange={setSearchValue}
             />
           </div>
           <CommandList className="scrollbar-hide">
+            {allowCustom && searchValue && !options.find(o => o.value.toLowerCase() === searchValue.toLowerCase()) && (
+              <div
+                onClick={() => {
+                  onChange(searchValue);
+                  setOpen(false);
+                  setSearchValue("");
+                }}
+                className="rounded-xl mx-1 my-1 py-3 pl-3 pr-8 font-bold text-sm bg-brand/10 text-brand cursor-pointer flex items-center hover:bg-brand/20 transition-colors"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                <span>Use "{searchValue}"</span>
+              </div>
+            )}
             <CommandEmpty className="py-6 text-center text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">
               {emptyText}
             </CommandEmpty>

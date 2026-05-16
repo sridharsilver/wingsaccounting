@@ -27,7 +27,7 @@ const invoiceSchema = z.object({
   notes: z.string().optional(),
   terms: z.string().optional(),
   items: z.array(z.object({
-    product_id: z.string().optional(),
+    product_id: z.string().uuid().optional().nullable(),
     description: z.string().min(1, "Description is required"),
     hsn_code: z.string().optional(),
     qty: z.coerce.number().min(0.01, "Qty must be > 0"),
@@ -323,14 +323,16 @@ export function InvoiceForm({ initialData, onSuccess, onCancel }: InvoiceFormPro
                             }))}
                             value={field.value}
                             onChange={(val) => {
-                              field.onChange(val);
                               // If it's an ID (exists in products), auto-fill
                               const product = products.find(p => p.id === val);
                               if (product) {
+                                field.onChange(val);
                                 handleProductSelect(index, val);
                               } else {
-                                // If it's a custom name, set description to that name
+                                // If it's a custom name
+                                field.onChange(null); // Clear product_id for manual entry
                                 setValue(`items.${index}.description`, val);
+                                // Optional: You could also clear HSN/Rate if desired
                               }
                             }}
                             placeholder="Search or Type Product..."
