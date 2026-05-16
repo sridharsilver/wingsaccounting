@@ -56,6 +56,7 @@ export function InvoiceForm({ initialData, onSuccess, onCancel }: InvoiceFormPro
     defaultValues: initialData || {
       invoice_number: "",
       date: new Date().toISOString().split("T")[0],
+      due_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
       gst_type: "CGST_SGST",
       items: [{ description: "", qty: 1, rate: 0, gst_rate: 18, amount: 0 }],
     },
