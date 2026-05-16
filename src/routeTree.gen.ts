@@ -12,12 +12,19 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppIndexRouteImport } from './routes/_app.index'
+import { Route as AppUsersRouteImport } from './routes/_app.users'
 import { Route as AppSettingsRouteImport } from './routes/_app.settings'
+import { Route as AppReportsRouteImport } from './routes/_app.reports'
+import { Route as AppQuotationsNewRouteImport } from './routes/_app.quotations-new'
 import { Route as AppQuotationsRouteImport } from './routes/_app.quotations'
 import { Route as AppProfileRouteImport } from './routes/_app.profile'
 import { Route as AppProductsRouteImport } from './routes/_app.products'
+import { Route as AppInvoicesNewRouteImport } from './routes/_app.invoices-new'
 import { Route as AppInvoicesRouteImport } from './routes/_app.invoices'
 import { Route as AppCustomersRouteImport } from './routes/_app.customers'
+import { Route as AppQuotationsEditIdRouteImport } from './routes/_app.quotations-edit.$id'
+import { Route as AppInvoicesEditIdRouteImport } from './routes/_app.invoices-edit.$id'
+import { Route as AppInvoicesIdEditRouteImport } from './routes/_app.invoices.$id.edit'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -33,9 +40,24 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppRoute,
 } as any)
+const AppUsersRoute = AppUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppSettingsRoute = AppSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppReportsRoute = AppReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppQuotationsNewRoute = AppQuotationsNewRouteImport.update({
+  id: '/quotations-new',
+  path: '/quotations-new',
   getParentRoute: () => AppRoute,
 } as any)
 const AppQuotationsRoute = AppQuotationsRouteImport.update({
@@ -53,6 +75,11 @@ const AppProductsRoute = AppProductsRouteImport.update({
   path: '/products',
   getParentRoute: () => AppRoute,
 } as any)
+const AppInvoicesNewRoute = AppInvoicesNewRouteImport.update({
+  id: '/invoices-new',
+  path: '/invoices-new',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppInvoicesRoute = AppInvoicesRouteImport.update({
   id: '/invoices',
   path: '/invoices',
@@ -63,38 +90,74 @@ const AppCustomersRoute = AppCustomersRouteImport.update({
   path: '/customers',
   getParentRoute: () => AppRoute,
 } as any)
+const AppQuotationsEditIdRoute = AppQuotationsEditIdRouteImport.update({
+  id: '/quotations-edit/$id',
+  path: '/quotations-edit/$id',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppInvoicesEditIdRoute = AppInvoicesEditIdRouteImport.update({
+  id: '/invoices-edit/$id',
+  path: '/invoices-edit/$id',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppInvoicesIdEditRoute = AppInvoicesIdEditRouteImport.update({
+  id: '/$id/edit',
+  path: '/$id/edit',
+  getParentRoute: () => AppInvoicesRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/login': typeof LoginRoute
   '/customers': typeof AppCustomersRoute
-  '/invoices': typeof AppInvoicesRoute
+  '/invoices': typeof AppInvoicesRouteWithChildren
+  '/invoices-new': typeof AppInvoicesNewRoute
   '/products': typeof AppProductsRoute
   '/profile': typeof AppProfileRoute
   '/quotations': typeof AppQuotationsRoute
+  '/quotations-new': typeof AppQuotationsNewRoute
+  '/reports': typeof AppReportsRoute
   '/settings': typeof AppSettingsRoute
+  '/users': typeof AppUsersRoute
+  '/invoices-edit/$id': typeof AppInvoicesEditIdRoute
+  '/quotations-edit/$id': typeof AppQuotationsEditIdRoute
+  '/invoices/$id/edit': typeof AppInvoicesIdEditRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/customers': typeof AppCustomersRoute
-  '/invoices': typeof AppInvoicesRoute
+  '/invoices': typeof AppInvoicesRouteWithChildren
+  '/invoices-new': typeof AppInvoicesNewRoute
   '/products': typeof AppProductsRoute
   '/profile': typeof AppProfileRoute
   '/quotations': typeof AppQuotationsRoute
+  '/quotations-new': typeof AppQuotationsNewRoute
+  '/reports': typeof AppReportsRoute
   '/settings': typeof AppSettingsRoute
+  '/users': typeof AppUsersRoute
   '/': typeof AppIndexRoute
+  '/invoices-edit/$id': typeof AppInvoicesEditIdRoute
+  '/quotations-edit/$id': typeof AppQuotationsEditIdRoute
+  '/invoices/$id/edit': typeof AppInvoicesIdEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
   '/_app/customers': typeof AppCustomersRoute
-  '/_app/invoices': typeof AppInvoicesRoute
+  '/_app/invoices': typeof AppInvoicesRouteWithChildren
+  '/_app/invoices-new': typeof AppInvoicesNewRoute
   '/_app/products': typeof AppProductsRoute
   '/_app/profile': typeof AppProfileRoute
   '/_app/quotations': typeof AppQuotationsRoute
+  '/_app/quotations-new': typeof AppQuotationsNewRoute
+  '/_app/reports': typeof AppReportsRoute
   '/_app/settings': typeof AppSettingsRoute
+  '/_app/users': typeof AppUsersRoute
   '/_app/': typeof AppIndexRoute
+  '/_app/invoices-edit/$id': typeof AppInvoicesEditIdRoute
+  '/_app/quotations-edit/$id': typeof AppQuotationsEditIdRoute
+  '/_app/invoices/$id/edit': typeof AppInvoicesIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -103,31 +166,52 @@ export interface FileRouteTypes {
     | '/login'
     | '/customers'
     | '/invoices'
+    | '/invoices-new'
     | '/products'
     | '/profile'
     | '/quotations'
+    | '/quotations-new'
+    | '/reports'
     | '/settings'
+    | '/users'
+    | '/invoices-edit/$id'
+    | '/quotations-edit/$id'
+    | '/invoices/$id/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
     | '/customers'
     | '/invoices'
+    | '/invoices-new'
     | '/products'
     | '/profile'
     | '/quotations'
+    | '/quotations-new'
+    | '/reports'
     | '/settings'
+    | '/users'
     | '/'
+    | '/invoices-edit/$id'
+    | '/quotations-edit/$id'
+    | '/invoices/$id/edit'
   id:
     | '__root__'
     | '/_app'
     | '/login'
     | '/_app/customers'
     | '/_app/invoices'
+    | '/_app/invoices-new'
     | '/_app/products'
     | '/_app/profile'
     | '/_app/quotations'
+    | '/_app/quotations-new'
+    | '/_app/reports'
     | '/_app/settings'
+    | '/_app/users'
     | '/_app/'
+    | '/_app/invoices-edit/$id'
+    | '/_app/quotations-edit/$id'
+    | '/_app/invoices/$id/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -158,11 +242,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/users': {
+      id: '/_app/users'
+      path: '/users'
+      fullPath: '/users'
+      preLoaderRoute: typeof AppUsersRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/settings': {
       id: '/_app/settings'
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof AppSettingsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/reports': {
+      id: '/_app/reports'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof AppReportsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/quotations-new': {
+      id: '/_app/quotations-new'
+      path: '/quotations-new'
+      fullPath: '/quotations-new'
+      preLoaderRoute: typeof AppQuotationsNewRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/quotations': {
@@ -186,6 +291,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProductsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/invoices-new': {
+      id: '/_app/invoices-new'
+      path: '/invoices-new'
+      fullPath: '/invoices-new'
+      preLoaderRoute: typeof AppInvoicesNewRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/invoices': {
       id: '/_app/invoices'
       path: '/invoices'
@@ -200,27 +312,72 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppCustomersRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/quotations-edit/$id': {
+      id: '/_app/quotations-edit/$id'
+      path: '/quotations-edit/$id'
+      fullPath: '/quotations-edit/$id'
+      preLoaderRoute: typeof AppQuotationsEditIdRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/invoices-edit/$id': {
+      id: '/_app/invoices-edit/$id'
+      path: '/invoices-edit/$id'
+      fullPath: '/invoices-edit/$id'
+      preLoaderRoute: typeof AppInvoicesEditIdRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/invoices/$id/edit': {
+      id: '/_app/invoices/$id/edit'
+      path: '/$id/edit'
+      fullPath: '/invoices/$id/edit'
+      preLoaderRoute: typeof AppInvoicesIdEditRouteImport
+      parentRoute: typeof AppInvoicesRoute
+    }
   }
 }
 
+interface AppInvoicesRouteChildren {
+  AppInvoicesIdEditRoute: typeof AppInvoicesIdEditRoute
+}
+
+const AppInvoicesRouteChildren: AppInvoicesRouteChildren = {
+  AppInvoicesIdEditRoute: AppInvoicesIdEditRoute,
+}
+
+const AppInvoicesRouteWithChildren = AppInvoicesRoute._addFileChildren(
+  AppInvoicesRouteChildren,
+)
+
 interface AppRouteChildren {
   AppCustomersRoute: typeof AppCustomersRoute
-  AppInvoicesRoute: typeof AppInvoicesRoute
+  AppInvoicesRoute: typeof AppInvoicesRouteWithChildren
+  AppInvoicesNewRoute: typeof AppInvoicesNewRoute
   AppProductsRoute: typeof AppProductsRoute
   AppProfileRoute: typeof AppProfileRoute
   AppQuotationsRoute: typeof AppQuotationsRoute
+  AppQuotationsNewRoute: typeof AppQuotationsNewRoute
+  AppReportsRoute: typeof AppReportsRoute
   AppSettingsRoute: typeof AppSettingsRoute
+  AppUsersRoute: typeof AppUsersRoute
   AppIndexRoute: typeof AppIndexRoute
+  AppInvoicesEditIdRoute: typeof AppInvoicesEditIdRoute
+  AppQuotationsEditIdRoute: typeof AppQuotationsEditIdRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppCustomersRoute: AppCustomersRoute,
-  AppInvoicesRoute: AppInvoicesRoute,
+  AppInvoicesRoute: AppInvoicesRouteWithChildren,
+  AppInvoicesNewRoute: AppInvoicesNewRoute,
   AppProductsRoute: AppProductsRoute,
   AppProfileRoute: AppProfileRoute,
   AppQuotationsRoute: AppQuotationsRoute,
+  AppQuotationsNewRoute: AppQuotationsNewRoute,
+  AppReportsRoute: AppReportsRoute,
   AppSettingsRoute: AppSettingsRoute,
+  AppUsersRoute: AppUsersRoute,
   AppIndexRoute: AppIndexRoute,
+  AppInvoicesEditIdRoute: AppInvoicesEditIdRoute,
+  AppQuotationsEditIdRoute: AppQuotationsEditIdRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

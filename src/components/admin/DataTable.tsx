@@ -47,15 +47,15 @@ export function DataTable({
               )}
             </tr>
           </thead>
-          <tbody className="block lg:table-row-group space-y-3 lg:space-y-0">
+          <tbody className="block lg:table-row-group space-y-4 lg:space-y-0">
             {data && data.length > 0 ? (
               data.map((row, i) => (
                 <tr 
                   key={row.id || i} 
-                  className="block lg:table-row bg-surface border border-border lg:border-0 lg:border-b lg:border-border/60 rounded-2xl lg:rounded-none p-3 lg:p-0 hover:bg-white/[0.02] transition-colors relative"
+                  className="block lg:table-row bg-surface border border-border lg:border-0 lg:border-b lg:border-border/60 rounded-3xl lg:rounded-none p-4 lg:p-0 hover:bg-white/[0.02] transition-all relative shadow-sm lg:shadow-none"
                 >
                   {columns.map((col, j) => (
-                    <td key={col.key} className="flex justify-between items-center lg:table-cell px-0 py-2 lg:px-3 xl:px-5 lg:py-3.5 border-b border-border/50 last:border-0 lg:border-0">
+                    <td key={col.key} className="flex justify-between items-center lg:table-cell px-0 py-2.5 lg:px-3 xl:px-5 lg:py-3.5 border-b border-border/40 last:border-0 lg:border-0">
                       <span className="lg:hidden text-[10px] uppercase tracking-widest font-bold text-muted-foreground mr-4 shrink-0 opacity-60">
                         {col.label}
                       </span>

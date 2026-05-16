@@ -128,6 +128,15 @@
     transition: background-color 0.3s ease, color 0.3s ease;
   }
   h1,h2,h3,h4,h5,h6 { font-family: var(--font-display); letter-spacing: -0.02em; }
+
+  select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='oklch(0.6 0.22 260)' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 14px;
+    padding-right: 2.5rem !important;
+  }
 }
 
 @layer utilities {
@@ -164,6 +173,13 @@
       linear-gradient(oklch(var(--foreground) / 0.04) 1px, transparent 1px),
       linear-gradient(90deg, oklch(var(--foreground) / 0.04) 1px, transparent 1px);
     background-size: 48px 48px;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 }
 

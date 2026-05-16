@@ -177,7 +177,11 @@ function ProfilePage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Admin Profile" desc="Manage your account security and preferences." />
+      <PageHeader 
+        title="Admin Profile" 
+        subtitle="Manage your account security and preferences." 
+        icon={User}
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Profile Info Card */}

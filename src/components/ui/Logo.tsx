@@ -7,7 +7,7 @@ export function Logo({ className = "h-8" }: { className?: string }) {
       <div className={`relative ${className} dark:hidden inline-block`} style={{ aspectRatio: '172/34' }}>
         <img 
           src={logo} 
-          alt="Wings Design Studio" 
+          alt="Wings Accounting" 
           className="h-full w-full object-contain"
         />
       </div>
@@ -16,7 +16,7 @@ export function Logo({ className = "h-8" }: { className?: string }) {
       <div className={`relative ${className} hidden dark:inline-block`} style={{ aspectRatio: '172/34' }}>
         <img 
           src={logo} 
-          alt="Wings Design Studio" 
+          alt="Wings Accounting" 
           className="h-full w-full object-contain brightness-0 invert"
         />
         <img 

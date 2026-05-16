@@ -1,16 +1,14 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { AddButton } from "@/components/admin/AddButton";
 import { DataTable } from "@/components/admin/DataTable";
 import { useState, useEffect } from "react";
-import { FileText, Search, Filter, Printer, Download, Eye } from "lucide-react";
+import { FileText, Search, Eye } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Drawer } from "vaul";
-import { InvoiceForm } from "@/components/accounting/InvoiceForm";
 import { InvoicePrint } from "@/components/accounting/InvoicePrint";
 import { format } from "date-fns";
 import { formatCurrency } from "@/lib/accounting-utils";
-import { toast } from "sonner";
 
 export const Route = createFileRoute("/_app/invoices")({
   component: InvoicesPage,
@@ -20,10 +18,10 @@ function InvoicesPage() {
   const [invoices, setInvoices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [isFormOpen, setIsFormOpen] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
   const [settings, setSettings] = useState<any>(null);
+  const navigate = useNavigate();
 
   const fetchData = async () => {
     setLoading(true);
@@ -82,9 +80,10 @@ function InvoicesPage() {
   return (
     <div className="space-y-6">
       <PageHeader 
-        title="Invoices" 
+        title="Sales Archives" 
         subtitle="Manage your sales invoices and track payments."
-        action={<AddButton label="Create Invoice" onClick={() => { setSelectedInvoice(null); setIsFormOpen(true); }} />}
+        icon={FileText}
+        action={<AddButton label="Create Invoice" onClick={() => navigate({ to: "/invoices-new" })} />}
       />
 
       <div className="flex flex-col sm:flex-row gap-4 items-center justify-between bg-surface p-4 rounded-xl border border-border">
@@ -118,14 +117,15 @@ function InvoicesPage() {
               <Eye size={16} />
             </button>
             <button 
-              onClick={() => { setSelectedInvoice(inv); setIsFormOpen(true); }}
+              onClick={() => navigate({ to: `/invoices-edit/${inv.id}` })}
               className="p-2 hover:bg-foreground/5 text-muted-foreground rounded-lg transition-colors"
+              title="Edit Invoice"
             >
               <FileText size={16} />
             </button>
           </div>
         )}
-        onEdit={(inv) => { setSelectedInvoice(inv); setIsFormOpen(true); }}
+        onEdit={(inv) => navigate({ to: `/invoices-edit/${inv.id}` })}
         onDelete={async (id) => {
           if (confirm("Delete this invoice?")) {
             await supabase.from("invoices").delete().eq("id", id);
@@ -135,38 +135,6 @@ function InvoicesPage() {
         emptyMessage={loading ? "Loading invoices..." : "No invoices found."}
         icon={FileText}
       />
-
-      {/* Invoice Form Drawer */}
-      <Drawer.Root open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <Drawer.Portal>
-          <Drawer.Overlay className="fixed inset-0 bg-black/40 z-50 backdrop-blur-sm" />
-          <Drawer.Content className="fixed bottom-0 left-0 right-0 top-10 bg-surface z-50 rounded-t-[32px] border-t border-border flex flex-col focus:outline-none overflow-hidden">
-            <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-border mt-4 mb-2" />
-            <div className="p-6 border-b border-border flex items-center justify-between">
-              <div>
-                <Drawer.Title className="text-2xl font-black uppercase tracking-tighter">
-                  {selectedInvoice ? "Edit Invoice" : "Create New Invoice"}
-                </Drawer.Title>
-              </div>
-              <button onClick={() => setIsFormOpen(false)} className="p-3 rounded-xl hover:bg-foreground/5 text-muted-foreground transition-colors">
-                <FileText size={24} />
-              </button>
-            </div>
-            <div className="flex-1 overflow-y-auto p-6 md:p-10 bg-background/50">
-              <div className="max-w-5xl mx-auto">
-                <InvoiceForm 
-                  initialData={selectedInvoice}
-                  onSuccess={() => {
-                    setIsFormOpen(false);
-                    fetchData();
-                  }}
-                  onCancel={() => setIsFormOpen(false)}
-                />
-              </div>
-            </div>
-          </Drawer.Content>
-        </Drawer.Portal>
-      </Drawer.Root>
 
       {/* Preview Drawer */}
       <Drawer.Root open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
@@ -183,14 +151,14 @@ function InvoicesPage() {
                   onClick={handlePrint}
                   className="flex items-center gap-2 px-4 py-2 bg-brand text-white rounded-xl font-bold text-sm shadow-glow hover:brightness-110"
                 >
-                  <Printer size={16} /> Print Invoice
+                  <FileText size={16} className="mr-2" /> Print Invoice
                 </button>
                 <button onClick={() => setIsPreviewOpen(false)} className="p-3 rounded-xl hover:bg-foreground/5 text-muted-foreground transition-colors">
                   <X size={24} />
                 </button>
               </div>
             </div>
-            <div className="flex-1 overflow-y-auto p-6 md:p-10 bg-foreground/5">
+            <div className="flex-1 overflow-y-auto p-6 md:p-10 bg-background/50">
               <div className="max-w-4xl mx-auto shadow-2xl rounded-2xl overflow-hidden">
                 <InvoicePrint invoice={selectedInvoice} settings={settings} />
               </div>
@@ -203,5 +171,3 @@ function InvoicesPage() {
 }
 
 const X = ({ size }: { size: number }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>;
-
-

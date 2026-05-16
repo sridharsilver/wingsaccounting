@@ -54,8 +54,9 @@ function CustomersPage() {
   return (
     <div className="space-y-6">
       <PageHeader 
-        title="Customers" 
+        title="Personnel Registry" 
         subtitle="Manage your customer base and their GST details."
+        icon={Users}
         action={<AddButton label="Add Customer" onClick={() => { setSelectedCustomer(null); setIsDrawerOpen(true); }} />}
       />
 

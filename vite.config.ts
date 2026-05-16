@@ -6,4 +6,13 @@ import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
   plugins: [tailwindcss(), react(), TanStackRouterVite(), tsconfigPaths()],
+  server: {
+    proxy: {
+      '/api-gst': {
+        target: 'https://sheet.gstincheck.co.in',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api-gst/, '')
+      }
+    }
+  }
 })

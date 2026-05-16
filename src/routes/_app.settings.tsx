@@ -18,6 +18,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
+import { PageHeader } from '@/components/admin/PageHeader'
 
 export const Route = createFileRoute('/_app/settings')({
   component: AdminSettingsPage,
@@ -101,10 +102,21 @@ function AdminSettingsPage() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 pb-20">
-      <div>
-        <h1 className="text-3xl font-black uppercase tracking-tight">Business Settings</h1>
-        <p className="text-muted-foreground">Configure your company profile and invoice preferences.</p>
-      </div>
+      <PageHeader 
+        title="Terminal Config" 
+        subtitle="Configure your company profile and invoice preferences."
+        icon={Building2}
+        actions={
+          <button 
+            onClick={handleSave}
+            disabled={isSaving}
+            className="px-8 py-3 rounded-2xl bg-gradient-brand text-brand-foreground font-bold shadow-glow hover:brightness-110 transition flex items-center gap-2 active:scale-95 text-xs uppercase tracking-widest"
+          >
+            {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 size={16} />}
+            Commit Changes
+          </button>
+        }
+      />
 
       <Tabs defaultValue="company" className="w-full">
         <TabsList className="grid w-full max-w-md grid-cols-3 mb-8 bg-foreground/5 p-1 rounded-2xl border border-border">
@@ -248,16 +260,6 @@ function AdminSettingsPage() {
         </TabsContent>
       </Tabs>
 
-      <div className="flex justify-end pt-4">
-        <button 
-          onClick={handleSave}
-          disabled={isSaving}
-          className="px-8 py-4 rounded-2xl bg-gradient-brand text-brand-foreground font-bold shadow-glow hover:brightness-110 transition flex items-center gap-2 active:scale-95"
-        >
-          {isSaving ? <Loader2 className="h-5 w-5 animate-spin" /> : <CheckCircle2 size={20} />}
-          Save Settings
-        </button>
-      </div>
     </div>
   );
 }
