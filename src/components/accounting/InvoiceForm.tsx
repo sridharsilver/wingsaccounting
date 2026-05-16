@@ -141,10 +141,13 @@ export function InvoiceForm({ initialData, onSuccess, onCancel }: InvoiceFormPro
 
       if (invError) throw invError;
 
-      const itemsPayload = values.items.map(item => ({
-        ...item,
-        invoice_id: invoice.id,
-      }));
+      const itemsPayload = values.items.map(item => {
+        const { product_id, ...itemData } = item;
+        return {
+          ...itemData,
+          invoice_id: invoice.id,
+        };
+      });
 
       const { error: itemsError } = await supabase
         .from("invoice_items")
