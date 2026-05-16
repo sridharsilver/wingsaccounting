@@ -315,24 +315,29 @@ export function InvoiceForm({ initialData, onSuccess, onCancel }: InvoiceFormPro
                         name={`items.${index}.product_id`}
                         control={control}
                         render={({ field }) => (
-                          <Select 
-                            onValueChange={(val) => {
-                              field.onChange(val);
-                              handleProductSelect(index, val);
-                            }} 
+                          <Combobox
+                            options={products.map(p => ({
+                              label: p.name,
+                              value: p.id,
+                              description: `${formatCurrency(p.price)} | ${p.gst_rate}% GST`
+                            }))}
                             value={field.value}
-                          >
-                            <SelectTrigger className="w-full h-9 px-3 rounded-lg border border-border/30 bg-background text-xs font-bold outline-none focus:ring-1 focus:ring-brand/50">
-                              <SelectValue placeholder="Quick Select Product" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {products.map(p => (
-                                <SelectItem key={p.id} value={p.id}>
-                                  {p.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                            onChange={(val) => {
+                              field.onChange(val);
+                              // If it's an ID (exists in products), auto-fill
+                              const product = products.find(p => p.id === val);
+                              if (product) {
+                                handleProductSelect(index, val);
+                              } else {
+                                // If it's a custom name, set description to that name
+                                setValue(`items.${index}.description`, val);
+                              }
+                            }}
+                            placeholder="Search or Type Product..."
+                            searchPlaceholder="Type product name..."
+                            className="h-9 rounded-lg"
+                            allowCustom={true}
+                          />
                         )}
                       />
                       <input {...register(`items.${index}.description`)} className="w-full h-9 px-3 rounded-lg border border-border/30 bg-background text-xs font-medium outline-none focus:ring-1 focus:ring-brand/50" placeholder="Describe the service or good..." />
@@ -353,6 +358,7 @@ export function InvoiceForm({ initialData, onSuccess, onCancel }: InvoiceFormPro
                           placeholder="HSN"
                           searchPlaceholder="Search HSN/SAC..."
                           className="w-full"
+                          allowCustom={true}
                         />
                       )}
                     />
