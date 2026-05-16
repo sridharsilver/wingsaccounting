@@ -84,10 +84,14 @@ export function InvoiceForm({ initialData, onSuccess, onCancel }: InvoiceFormPro
       if (prodRes.data) setProducts(prodRes.data);
       if (setRes.data) {
         setSellerSettings(setRes.data);
-        if (!initialData && isAutoNumber) {
-          const nextNum = setRes.data.next_invoice_number || 1;
-          const prefix = setRes.data.invoice_prefix || "INV-";
-          setValue("invoice_number", `${prefix}${nextNum.toString().padStart(4, "0")}`);
+        if (!initialData) {
+          if (isAutoNumber) {
+            const nextNum = setRes.data.next_invoice_number || 1;
+            const prefix = setRes.data.invoice_prefix || "INV-";
+            setValue("invoice_number", `${prefix}${nextNum.toString().padStart(4, "0")}`);
+          }
+          setValue("place_of_supply", setRes.data.state || "Tamil Nadu");
+          setValue("place_of_supply_code", setRes.data.state_code || "33");
         }
       } else {
         // Default settings if none found
