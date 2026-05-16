@@ -119,8 +119,9 @@ export function InvoiceForm({ initialData, onSuccess, onCancel }: InvoiceFormPro
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error("No session");
 
+      const { items, ...invoiceData } = values;
       const invoicePayload = {
-        ...values,
+        ...invoiceData,
         user_id: session.user.id,
         subtotal: totals.subtotal,
         total_tax: totals.total_tax,
