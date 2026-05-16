@@ -242,22 +242,27 @@ export function InvoiceForm({ initialData, onSuccess, onCancel }: InvoiceFormPro
               name="place_of_supply"
               control={control}
               render={({ field }) => (
-                <Combobox
-                  options={STATE_NAMES.map(state => ({
-                    label: state,
-                    value: state
-                  }))}
-                  value={field.value}
-                  onChange={(val) => {
+                <Select
+                  onValueChange={(val) => {
                     field.onChange(val);
                     const state = INDIAN_STATES.find(s => s.name === val);
                     if (state) {
                       setValue("place_of_supply_code", state.code);
                     }
                   }}
-                  placeholder="Select State..."
-                  searchPlaceholder="Search state..."
-                />
+                  value={field.value}
+                >
+                  <SelectTrigger className="w-full h-11 px-4 rounded-2xl border border-border/50 bg-foreground/[0.03] outline-none focus:ring-2 focus:ring-brand/50 font-bold text-sm">
+                    <SelectValue placeholder="Select State" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {INDIAN_STATES.map(state => (
+                      <SelectItem key={state.code} value={state.name}>
+                        {state.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               )}
             />
           </div>

@@ -5,7 +5,13 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Loader2, Search, Building2 } from "lucide-react";
 import { useState } from "react";
-import { Combobox } from "@/components/ui/combobox";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
 import { INDIAN_STATES } from "@/lib/constants";
 
 const customerSchema = z.object({
@@ -197,22 +203,27 @@ export function CustomerForm({ initialData, onSuccess, onCancel }: CustomerFormP
             name="state"
             control={control}
             render={({ field }) => (
-              <Combobox
-                options={INDIAN_STATES.map(s => ({
-                  label: s.name,
-                  value: s.name
-                }))}
-                value={field.value}
-                onChange={(val) => {
+              <Select 
+                onValueChange={(val) => {
                   field.onChange(val);
                   const selectedState = INDIAN_STATES.find(s => s.name === val);
                   if (selectedState) {
                     setValue("state_code", selectedState.code);
                   }
-                }}
-                placeholder="Select State..."
-                searchPlaceholder="Search state..."
-              />
+                }} 
+                value={field.value}
+              >
+                <SelectTrigger className="w-full p-2 h-10 rounded-lg border border-border bg-surface outline-none focus:ring-2 focus:ring-brand">
+                  <SelectValue placeholder="Select State" />
+                </SelectTrigger>
+                <SelectContent>
+                  {INDIAN_STATES.map(s => (
+                    <SelectItem key={s.code} value={s.name}>
+                      {s.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             )}
           />
           {errors.state && <p className="text-xs text-red-500">{errors.state.message}</p>}
