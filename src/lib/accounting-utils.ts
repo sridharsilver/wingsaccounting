@@ -26,8 +26,8 @@ export const formatCurrency = (amount: number) => {
 
 export const calculateInvoiceTotals = (items: any[], isInterState: boolean) => {
   return items.reduce((acc, item) => {
-    const amount = Number(item.qty) * Number(item.rate);
-    const tax = calculateGST(Number(item.gst_rate), amount, isInterState);
+    const amount = (Number(item.qty) || 0) * (Number(item.rate) || 0);
+    const tax = calculateGST((Number(item.gst_rate) || 0), amount, isInterState);
     
     return {
       subtotal: acc.subtotal + amount,

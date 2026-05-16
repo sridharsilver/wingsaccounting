@@ -406,13 +406,13 @@ export function InvoiceForm({ initialData, onSuccess, onCancel }: InvoiceFormPro
                     />
                   </td>
                   <td className="p-4 text-center">
-                    <input type="number" step="any" {...register(`items.${index}.qty`, { valueAsNumber: true })} className="w-full h-9 px-3 rounded-lg border border-border/30 bg-background text-xs font-bold outline-none text-center" />
+                    <input type="text" inputMode="decimal" {...register(`items.${index}.qty`)} className="w-full h-9 px-3 rounded-lg border border-border/30 bg-background text-xs font-bold outline-none text-center" />
                   </td>
                   <td className="p-4 text-center">
-                    <input type="number" step="any" {...register(`items.${index}.rate`, { valueAsNumber: true })} className="w-full h-9 px-3 rounded-lg border border-border/30 bg-background text-xs font-bold outline-none text-right" />
+                    <input type="text" inputMode="decimal" {...register(`items.${index}.rate`)} className="w-full h-9 px-3 rounded-lg border border-border/30 bg-background text-xs font-bold outline-none text-right" />
                   </td>
                   <td className="p-4 text-center">
-                    <input type="number" {...register(`items.${index}.gst_rate`, { valueAsNumber: true })} className="w-full h-9 px-3 rounded-lg border border-border/30 bg-background text-xs font-bold text-center outline-none" />
+                    <input type="text" inputMode="decimal" {...register(`items.${index}.gst_rate`)} className="w-full h-9 px-3 rounded-lg border border-border/30 bg-background text-xs font-bold text-center outline-none" />
                   </td>
                   <td className="p-4 text-right font-black text-sm italic">
                     {formatCurrency(Number(watchedItems?.[index]?.qty || 0) * Number(watchedItems?.[index]?.rate || 0))}
@@ -449,12 +449,12 @@ export function InvoiceForm({ initialData, onSuccess, onCancel }: InvoiceFormPro
 
                 <div className="grid grid-cols-2 gap-3">
                   <input {...register(`items.${index}.hsn_code`)} className="w-full p-2.5 rounded-lg border border-border/30 bg-surface text-xs" placeholder="HSN" />
-                  <input type="number" {...register(`items.${index}.gst_rate`, { valueAsNumber: true })} className="w-full p-2.5 rounded-lg border border-border/30 bg-surface text-xs" placeholder="GST %" />
+                  <input type="text" inputMode="decimal" {...register(`items.${index}.gst_rate`)} className="w-full p-2.5 rounded-lg border border-border/30 bg-surface text-xs" placeholder="GST %" />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
-                  <input type="number" step="any" {...register(`items.${index}.qty`, { valueAsNumber: true })} className="w-full p-2.5 rounded-lg border border-border/30 bg-surface text-xs font-bold" placeholder="Qty" />
-                  <input type="number" step="any" {...register(`items.${index}.rate`, { valueAsNumber: true })} className="w-full p-2.5 rounded-lg border border-border/30 bg-surface text-xs font-bold" placeholder="Rate" />
+                  <input type="text" inputMode="decimal" {...register(`items.${index}.qty`)} className="w-full p-2.5 rounded-lg border border-border/30 bg-surface text-xs font-bold" placeholder="Qty" />
+                  <input type="text" inputMode="decimal" {...register(`items.${index}.rate`)} className="w-full p-2.5 rounded-lg border border-border/30 bg-surface text-xs font-bold" placeholder="Rate" />
                 </div>
               </div>
             ))}
