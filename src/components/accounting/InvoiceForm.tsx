@@ -61,6 +61,8 @@ export function InvoiceForm({ initialData, onSuccess, onCancel }: InvoiceFormPro
     },
   });
 
+  const [isAutoNumber, setIsAutoNumber] = useState(!initialData);
+
   const { fields, append, remove } = useFieldArray({
     control,
     name: "items",
@@ -75,22 +77,27 @@ export function InvoiceForm({ initialData, onSuccess, onCancel }: InvoiceFormPro
       const [custRes, prodRes, setRes] = await Promise.all([
         supabase.from("customers").select("*").order("name"),
         supabase.from("products").select("*").order("name"),
-        supabase.from("settings").select("*").single(),
+        supabase.from("settings").select("*").maybeSingle(),
       ]);
 
       if (custRes.data) setCustomers(custRes.data);
       if (prodRes.data) setProducts(prodRes.data);
       if (setRes.data) {
         setSellerSettings(setRes.data);
-        if (!initialData) {
+        if (!initialData && isAutoNumber) {
           const nextNum = setRes.data.next_invoice_number || 1;
           const prefix = setRes.data.invoice_prefix || "INV-";
           setValue("invoice_number", `${prefix}${nextNum.toString().padStart(4, "0")}`);
         }
+      } else {
+        // Default settings if none found
+        if (!initialData && isAutoNumber) {
+          setValue("invoice_number", `INV-${Math.floor(1000 + Math.random() * 9000)}`);
+        }
       }
     }
     fetchData();
-  }, [setValue, initialData]);
+  }, [setValue, initialData, isAutoNumber]);
 
   // Auto-set GST type based on customer state
   useEffect(() => {
@@ -173,8 +180,30 @@ export function InvoiceForm({ initialData, onSuccess, onCancel }: InvoiceFormPro
         {/* Basic Info */}
         <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-5">
           <div className="space-y-1.5">
-            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1">Secure Invoice Number</label>
-            <input {...register("invoice_number")} className="w-full h-11 px-4 rounded-2xl border border-border/50 bg-foreground/[0.03] outline-none focus:ring-2 focus:ring-brand/50 font-mono font-bold text-sm" />
+            <div className="flex justify-between items-center ml-1">
+              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">Secure Invoice Number</label>
+              <button 
+                type="button" 
+                onClick={() => setIsAutoNumber(!isAutoNumber)}
+                className={`text-[8px] font-bold px-2 py-0.5 rounded-full border transition-all ${isAutoNumber ? 'bg-brand/10 border-brand/20 text-brand' : 'bg-muted border-border text-muted-foreground'}`}
+              >
+                {isAutoNumber ? "Auto" : "Manual"}
+              </button>
+            </div>
+            <div className="relative group">
+              <input 
+                {...register("invoice_number")} 
+                readOnly={isAutoNumber}
+                className={`w-full h-11 px-4 rounded-2xl border border-border/50 bg-foreground/[0.03] outline-none focus:ring-2 focus:ring-brand/50 font-mono font-bold text-sm tracking-tighter ${isAutoNumber ? 'text-brand cursor-not-allowed opacity-80' : 'text-foreground'}`} 
+              />
+              {isAutoNumber && (
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+                  <div className="size-1.5 rounded-full bg-brand animate-pulse" />
+                  <span className="text-[8px] font-black text-brand/40 uppercase tracking-widest">Secured</span>
+                </div>
+              )}
+            </div>
+            {errors.invoice_number && <p className="text-[10px] text-red-500 font-bold mt-1 ml-1">{errors.invoice_number.message}</p>}
           </div>
           <div className="space-y-1.5">
             <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1">Customer Selection</label>
