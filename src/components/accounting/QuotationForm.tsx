@@ -46,7 +46,7 @@ export function QuotationForm({ initialData, onSuccess, onCancel }: QuotationFor
   const [customers, setCustomers] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
 
-  const { register, control, handleSubmit, setValue, formState: { errors } } = useForm<QuotationFormValues>({
+  const { register, control, handleSubmit, setValue, reset, formState: { errors } } = useForm<QuotationFormValues>({
     resolver: zodResolver(quotationSchema),
     defaultValues: initialData || {
       quotation_number: `QTN-${Date.now().toString().slice(-6)}`,
@@ -54,6 +54,13 @@ export function QuotationForm({ initialData, onSuccess, onCancel }: QuotationFor
       items: [{ description: "", qty: 1, rate: 0, gst_rate: 18, amount: 0 }],
     },
   });
+
+  // Reset form when initialData is loaded (for editing)
+  useEffect(() => {
+    if (initialData) {
+      reset(initialData);
+    }
+  }, [initialData, reset]);
 
   const { fields, append, remove } = useFieldArray({ control, name: "items" });
   const watchedItems = useWatch({ control, name: "items" });
@@ -85,18 +92,40 @@ export function QuotationForm({ initialData, onSuccess, onCancel }: QuotationFor
         status: "draft",
       };
 
-      const { data: quotation, error: qtnError } = await supabase
-        .from("quotations")
-        .insert([qtnPayload])
-        .select()
-        .single();
+      let quotation;
+      if (initialData?.id) {
+        const { data, error: qtnError } = await supabase
+          .from("quotations")
+          .update(qtnPayload)
+          .eq("id", initialData.id)
+          .select()
+          .single();
+        if (qtnError) throw qtnError;
+        quotation = data;
 
-      if (qtnError) throw qtnError;
+        // Delete existing items to replace them
+        const { error: delError } = await supabase
+          .from("quotation_items")
+          .delete()
+          .eq("quotation_id", initialData.id);
+        if (delError) throw delError;
+      } else {
+        const { data, error: qtnError } = await supabase
+          .from("quotations")
+          .insert([qtnPayload])
+          .select()
+          .single();
+        if (qtnError) throw qtnError;
+        quotation = data;
+      }
 
-      const itemsPayload = values.items.map(item => ({
-        ...item,
-        quotation_id: quotation.id,
-      }));
+      const itemsPayload = values.items.map(item => {
+        const { product_id, ...itemData } = item;
+        return {
+          ...itemData,
+          quotation_id: quotation.id,
+        };
+      });
 
       const { error: itemsError } = await supabase
         .from("quotation_items")

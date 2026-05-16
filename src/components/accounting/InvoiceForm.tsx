@@ -51,7 +51,7 @@ export function InvoiceForm({ initialData, onSuccess, onCancel }: InvoiceFormPro
   const [products, setProducts] = useState<any[]>([]);
   const [sellerSettings, setSellerSettings] = useState<any>(null);
 
-  const { register, control, handleSubmit, setValue, watch, formState: { errors } } = useForm<InvoiceFormValues>({
+  const { register, control, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm<InvoiceFormValues>({
     resolver: zodResolver(invoiceSchema),
     defaultValues: initialData || {
       invoice_number: "",
@@ -60,6 +60,13 @@ export function InvoiceForm({ initialData, onSuccess, onCancel }: InvoiceFormPro
       items: [{ description: "", qty: 1, rate: 0, gst_rate: 18, amount: 0 }],
     },
   });
+
+  // Reset form when initialData is loaded (for editing)
+  useEffect(() => {
+    if (initialData) {
+      reset(initialData);
+    }
+  }, [initialData, reset]);
 
   const [isAutoNumber, setIsAutoNumber] = useState(!initialData);
 
@@ -133,13 +140,32 @@ export function InvoiceForm({ initialData, onSuccess, onCancel }: InvoiceFormPro
         status: "sent", // default to sent for now
       };
 
-      const { data: invoice, error: invError } = await supabase
-        .from("invoices")
-        .insert([invoicePayload])
-        .select()
-        .single();
+      let invoice;
+      if (initialData?.id) {
+        const { data, error: invError } = await supabase
+          .from("invoices")
+          .update(invoicePayload)
+          .eq("id", initialData.id)
+          .select()
+          .single();
+        if (invError) throw invError;
+        invoice = data;
 
-      if (invError) throw invError;
+        // Delete existing items to replace them
+        const { error: delError } = await supabase
+          .from("invoice_items")
+          .delete()
+          .eq("invoice_id", initialData.id);
+        if (delError) throw delError;
+      } else {
+        const { data, error: invError } = await supabase
+          .from("invoices")
+          .insert([invoicePayload])
+          .select()
+          .single();
+        if (invError) throw invError;
+        invoice = data;
+      }
 
       const itemsPayload = values.items.map(item => {
         const { product_id, ...itemData } = item;
