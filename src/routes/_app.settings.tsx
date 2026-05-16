@@ -16,6 +16,14 @@ import {
 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select"
+import { INDIAN_STATES } from '@/lib/constants'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 import { PageHeader } from '@/components/admin/PageHeader'
@@ -39,6 +47,13 @@ function AdminSettingsPage() {
     },
     invoice_prefix: 'INV-',
   });
+  const [addressParts, setAddressParts] = useState({
+    line1: '',
+    line2: '',
+    city: '',
+    country: 'India',
+    pincode: ''
+  });
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -60,6 +75,16 @@ function AdminSettingsPage() {
 
       if (data) {
         setSettings(data);
+        if (data.address) {
+          const parts = data.address.split(',').map((p: string) => p.trim());
+          setAddressParts({
+            line1: parts[0] || '',
+            line2: parts[1] || '',
+            city: parts[2] || '',
+            country: parts[4] || 'India',
+            pincode: parts[5] || ''
+          });
+        }
       }
     } catch (err) {
       console.error("Error fetching settings:", err);
@@ -74,11 +99,14 @@ function AdminSettingsPage() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
+      const fullAddress = `${addressParts.line1}, ${addressParts.line2}, ${addressParts.city}, ${settings.state}, ${addressParts.country} ${addressParts.pincode}`;
+      
       const { error } = await supabase
         .from('settings')
         .upsert({ 
           user_id: session.user.id,
           ...settings,
+          address: fullAddress,
           updated_at: new Date().toISOString()
         });
 
@@ -157,28 +185,88 @@ function AdminSettingsPage() {
                 </div>
                 <div className="space-y-2">
                   <Label>State</Label>
-                  <Input 
-                    value={settings.state}
-                    onChange={(e) => setSettings({ ...settings, state: e.target.value })}
-                    className="h-12 rounded-xl border-border bg-background"
-                  />
+                  <Select 
+                    value={settings.state} 
+                    onValueChange={(val) => {
+                      const stateObj = INDIAN_STATES.find(s => s.name === val);
+                      setSettings({ 
+                        ...settings, 
+                        state: val, 
+                        state_code: stateObj?.code || settings.state_code 
+                      });
+                    }}
+                  >
+                    <SelectTrigger className="h-12 rounded-xl border-border bg-background">
+                      <SelectValue placeholder="Select State" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {INDIAN_STATES.map(state => (
+                        <SelectItem key={state.code} value={state.name}>
+                          {state.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label>State Code</Label>
                   <Input 
                     value={settings.state_code}
-                    onChange={(e) => setSettings({ ...settings, state_code: e.target.value })}
-                    className="h-12 rounded-xl border-border bg-background font-mono"
+                    readOnly
+                    className="h-12 rounded-xl border-border bg-foreground/5 font-mono cursor-not-allowed"
                   />
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label>Address</Label>
-                <Textarea 
-                  value={settings.address}
-                  onChange={(e) => setSettings({ ...settings, address: e.target.value })}
-                  className="rounded-xl border-border bg-background min-h-[100px]"
-                />
+
+              <div className="pt-4 border-t border-border/50">
+                <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 mb-4">Mailing Address</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2 md:col-span-2">
+                    <Label className="text-[10px] font-bold uppercase tracking-widest opacity-70">Address Line 1</Label>
+                    <Input 
+                      value={addressParts.line1}
+                      onChange={(e) => setAddressParts({ ...addressParts, line1: e.target.value })}
+                      placeholder="Door No, Building Name"
+                      className="h-11 rounded-xl"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-bold uppercase tracking-widest opacity-70">Area / Locality</Label>
+                    <Input 
+                      value={addressParts.line2}
+                      onChange={(e) => setAddressParts({ ...addressParts, line2: e.target.value })}
+                      placeholder="Street, Area"
+                      className="h-11 rounded-xl"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-bold uppercase tracking-widest opacity-70">City / Town</Label>
+                    <Input 
+                      value={addressParts.city}
+                      onChange={(e) => setAddressParts({ ...addressParts, city: e.target.value })}
+                      placeholder="City Name"
+                      className="h-11 rounded-xl"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-bold uppercase tracking-widest opacity-70">Country</Label>
+                    <Input 
+                      value={addressParts.country}
+                      onChange={(e) => setAddressParts({ ...addressParts, country: e.target.value })}
+                      className="h-11 rounded-xl bg-foreground/5"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-bold uppercase tracking-widest opacity-70">Pincode</Label>
+                    <Input 
+                      value={addressParts.pincode}
+                      onChange={(e) => setAddressParts({ ...addressParts, pincode: e.target.value })}
+                      placeholder="600001"
+                      maxLength={6}
+                      className="h-11 rounded-xl font-mono"
+                    />
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
