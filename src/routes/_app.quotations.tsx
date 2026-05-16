@@ -68,7 +68,7 @@ function QuotationsPage() {
           { key: "status", label: "Status" },
         ]}
         data={filteredQuotations}
-        onEdit={(q) => navigate({ to: `/quotations-edit/${q.id}` })}
+        onEdit={(q) => navigate({ to: `/quotations/${q.id}/edit` })}
         onDelete={async (id) => {
           if (confirm("Delete this quotation?")) {
             await supabase.from("quotations").delete().eq("id", id);

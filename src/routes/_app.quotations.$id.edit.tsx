@@ -6,12 +6,12 @@ import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 
-export const Route = createFileRoute("/_app/quotations-edit/$id")({
+export const Route = createFileRoute("/_app/quotations/$id/edit")({
   component: EditQuotationPage,
 });
 
 function EditQuotationPage() {
-  const { id } = useParams({ from: "/_app/quotations-edit/$id" });
+  const { id } = useParams({ from: "/_app/quotations/$id/edit" });
   const navigate = useNavigate();
   const [quotation, setQuotation] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -25,7 +25,14 @@ function EditQuotationPage() {
         .eq("id", id)
         .single();
       
-      if (!error) setQuotation(data);
+      if (!error && data) {
+        // Map quotation_items to items for the form
+        const mappedQuotation = {
+          ...data,
+          items: data.quotation_items || []
+        };
+        setQuotation(mappedQuotation);
+      }
       setLoading(false);
     };
 
@@ -41,7 +48,7 @@ function EditQuotationPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8 pb-20 px-4 md:px-0">
+    <div className="max-w-7xl mx-auto space-y-8 pb-20">
       <PageHeader 
         title={`Revise Quotation #${quotation?.quotation_number}`} 
         subtitle="Updating business proposal"
@@ -57,7 +64,7 @@ function EditQuotationPage() {
         }
       />
 
-      <div className="bg-transparent overflow-hidden">
+      <div className="glass rounded-[2.5rem] border border-white/5 overflow-hidden shadow-2xl bg-surface/30">
         <QuotationForm 
           initialData={quotation}
           onSuccess={() => navigate({ to: "/quotations" })}

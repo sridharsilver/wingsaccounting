@@ -25,7 +25,14 @@ function EditInvoicePage() {
         .eq("id", id)
         .single();
       
-      if (!error) setInvoice(data);
+      if (!error && data) {
+        // Map invoice_items to items for the form
+        const mappedInvoice = {
+          ...data,
+          items: data.invoice_items || []
+        };
+        setInvoice(mappedInvoice);
+      }
       setLoading(false);
     };
 

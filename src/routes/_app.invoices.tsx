@@ -117,7 +117,7 @@ function InvoicesPage() {
               <Eye size={16} />
             </button>
             <button 
-              onClick={() => navigate({ to: `/invoices-edit/${inv.id}` })}
+              onClick={() => navigate({ to: `/invoices/${inv.id}/edit` })}
               className="p-2 hover:bg-foreground/5 text-muted-foreground rounded-lg transition-colors"
               title="Edit Invoice"
             >
@@ -125,7 +125,7 @@ function InvoicesPage() {
             </button>
           </div>
         )}
-        onEdit={(inv) => navigate({ to: `/invoices-edit/${inv.id}` })}
+        onEdit={(inv) => navigate({ to: `/invoices/${inv.id}/edit` })}
         onDelete={async (id) => {
           if (confirm("Delete this invoice?")) {
             await supabase.from("invoices").delete().eq("id", id);
