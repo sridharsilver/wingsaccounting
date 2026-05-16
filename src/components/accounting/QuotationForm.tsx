@@ -1,4 +1,4 @@
-import { useForm, useFieldArray, useWatch } from "react-hook-form";
+import { useForm, useFieldArray, useWatch, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { supabase } from "@/lib/supabase";
@@ -6,11 +6,22 @@ import { toast } from "sonner";
 import { Loader2, Plus, Trash2, FileText } from "lucide-react";
 import { useState, useEffect } from "react";
 import { calculateInvoiceTotals, formatCurrency } from "@/lib/accounting-utils";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
+import { Combobox } from "@/components/ui/combobox";
+import { STATE_NAMES, INDIAN_STATES, COMMON_HSN_CODES } from "@/lib/constants";
 
 const quotationSchema = z.object({
   quotation_number: z.string().min(1, "Quotation number is required"),
   date: z.string().min(1, "Date is required"),
   customer_id: z.string().min(1, "Customer is required"),
+  place_of_supply: z.string().min(1, "Place of supply is required"),
+  place_of_supply_code: z.string().optional(),
   notes: z.string().optional(),
   items: z.array(z.object({
     product_id: z.string().optional(),
@@ -113,70 +124,184 @@ export function QuotationForm({ initialData, onSuccess, onCancel }: QuotationFor
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-foreground/5 p-6 rounded-2xl border border-border">
-        <div className="space-y-2">
-          <label className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Quotation Number</label>
-          <input {...register("quotation_number")} className="w-full p-3 rounded-xl border border-border bg-surface outline-none font-mono" />
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Basic Info */}
+        <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1">Quotation Number</label>
+            <input {...register("quotation_number")} className="w-full h-11 px-4 rounded-2xl border border-border/50 bg-foreground/[0.03] outline-none focus:ring-2 focus:ring-brand/50 font-mono font-bold text-sm" />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1">Customer Selection</label>
+            <Controller
+              name="customer_id"
+              control={control}
+              render={({ field }) => (
+                <Combobox
+                  options={customers.map(c => ({
+                    label: c.name,
+                    value: c.id,
+                    description: c.gstin || "No GSTIN"
+                  }))}
+                  value={field.value}
+                  onChange={field.onChange}
+                  placeholder="Find or Select Customer..."
+                  searchPlaceholder="Search customers by name..."
+                />
+              )}
+            />
+            {errors.customer_id && <p className="text-[10px] text-red-500 font-bold mt-1 ml-1">{errors.customer_id.message}</p>}
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1">Document Date</label>
+            <input type="date" {...register("date")} className="w-full h-11 px-4 rounded-2xl border border-border/50 bg-foreground/[0.03] outline-none focus:ring-2 focus:ring-brand/50 font-bold text-sm" />
+          </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1">Supply Destination</label>
+            <Controller
+              name="place_of_supply"
+              control={control}
+              render={({ field }) => (
+                <Combobox
+                  options={STATE_NAMES.map(state => ({
+                    label: state,
+                    value: state
+                  }))}
+                  value={field.value}
+                  onChange={(val) => {
+                    field.onChange(val);
+                    const state = INDIAN_STATES.find(s => s.name === val);
+                    if (state) {
+                      setValue("place_of_supply_code", state.code);
+                    }
+                  }}
+                  placeholder="Select State..."
+                  searchPlaceholder="Search state..."
+                />
+              )}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1">State Code</label>
+            <input 
+              {...register("place_of_supply_code")} 
+              className="w-full h-11 px-4 rounded-2xl border border-border/50 bg-foreground/[0.03] outline-none focus:ring-2 focus:ring-brand/50 font-bold text-sm" 
+              placeholder="Code"
+              maxLength={2}
+              readOnly
+            />
+          </div>
         </div>
-        <div className="space-y-2">
-          <label className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Date</label>
-          <input type="date" {...register("date")} className="w-full p-3 rounded-xl border border-border bg-surface outline-none" />
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1">Reference (Optional)</label>
+            <input className="w-full h-11 px-4 rounded-2xl border border-border/50 bg-foreground/[0.03] outline-none focus:ring-2 focus:ring-brand/50 font-bold text-sm" placeholder="e.g. Inquiry #123" />
+          </div>
         </div>
-      </div>
 
-      <div className="space-y-2">
-        <label className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Customer</label>
-        <select {...register("customer_id")} className="w-full p-3 rounded-xl border border-border bg-surface outline-none">
-          <option value="">Select Customer</option>
-          {customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-        </select>
-        {errors.customer_id && <p className="text-xs text-red-500">{errors.customer_id.message}</p>}
+        {/* Status Info */}
+        <div className="lg:col-span-4 bg-brand/[0.03] p-6 rounded-3xl border border-brand/10 space-y-4">
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-brand ml-1">Estimation Validity</label>
+            <select className="w-full h-11 px-4 rounded-2xl border border-brand/20 bg-background outline-none focus:ring-2 focus:ring-brand font-bold text-sm">
+              <option>Valid for 7 Days</option>
+              <option>Valid for 15 Days</option>
+              <option>Valid for 30 Days</option>
+              <option>Custom Date</option>
+            </select>
+          </div>
+          <div className="flex items-center justify-between pt-2">
+            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground">Document Status</span>
+            <span className="px-3 py-1 rounded-full bg-brand/10 text-brand text-[9px] font-black uppercase tracking-tighter border border-brand/20">
+              Draft Mode
+            </span>
+          </div>
+        </div>
       </div>
 
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="font-bold text-lg">Quotation Items</h3>
-          <button type="button" onClick={() => append({ description: "", qty: 1, rate: 0, gst_rate: 18, amount: 0 })} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-brand/10 text-brand hover:bg-brand/20 transition-colors text-sm font-bold">
-            <Plus size={16} /> Add Item
+        <div className="flex items-center justify-between px-1">
+          <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-brand">Quotation Items</h3>
+          <button type="button" onClick={() => append({ description: "", qty: 1, rate: 0, gst_rate: 18, amount: 0 })} className="text-[9px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full border border-brand/20 text-brand hover:bg-brand/5 transition-all">
+            + Add Entry
           </button>
         </div>
 
-        <div className="overflow-x-auto rounded-2xl border border-border">
+        <div className="rounded-3xl border border-border/50 overflow-hidden bg-background/20 backdrop-blur-sm">
           <table className="w-full text-left border-collapse">
-            <thead className="bg-foreground/5 text-xs font-bold uppercase tracking-widest text-muted-foreground">
+            <thead className="bg-foreground/[0.03] text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 border-b border-border/30">
               <tr>
-                <th className="p-4 w-1/3">Item Details</th>
-                <th className="p-4 w-24">Qty</th>
-                <th className="p-4 w-32">Rate</th>
-                <th className="p-4 w-32 text-right">Amount</th>
-                <th className="p-4 w-12"></th>
+                <th className="p-4 w-[35%]">Line Item / Service Description</th>
+                <th className="p-4 w-[15%]">HSN/SAC</th>
+                <th className="p-4 w-[10%]">Qty</th>
+                <th className="p-4 w-[15%]">Unit Rate</th>
+                <th className="p-4 w-[20%] text-right">Net Value</th>
+                <th className="p-4 w-[5%]"></th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-border">
+            <tbody className="divide-y divide-border/20">
               {fields.map((field, index) => (
-                <tr key={field.id} className="group">
+                <tr key={field.id} className="group hover:bg-brand/[0.01] transition-colors">
                   <td className="p-4">
-                    <select 
-                      onChange={(e) => handleProductSelect(index, e.target.value)}
-                      className="w-full mb-2 p-2 rounded-lg border border-border bg-surface text-xs outline-none"
-                    >
-                      <option value="">Select a Product</option>
-                      {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                    </select>
-                    <input {...register(`items.${index}.description`)} className="w-full p-2 rounded-lg border border-border bg-surface text-sm outline-none" placeholder="Item description..." />
+                    <div className="space-y-2">
+                      <Controller
+                        name={`items.${index}.product_id`}
+                        control={control}
+                        render={({ field }) => (
+                          <Select 
+                            onValueChange={(val) => {
+                              field.onChange(val);
+                              handleProductSelect(index, val);
+                            }} 
+                            value={field.value}
+                          >
+                            <SelectTrigger className="w-full h-9 px-3 rounded-lg border border-border/30 bg-background text-xs font-bold outline-none focus:ring-1 focus:ring-brand/50">
+                              <SelectValue placeholder="Quick Select Product" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {products.map(p => (
+                                <SelectItem key={p.id} value={p.id}>
+                                  {p.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                      />
+                      <input {...register(`items.${index}.description`)} className="w-full h-9 px-3 rounded-lg border border-border/30 bg-background text-xs font-medium outline-none focus:ring-1 focus:ring-brand/50" placeholder="Describe the service or good..." />
+                    </div>
                   </td>
                   <td className="p-4">
-                    <input type="number" step="any" {...register(`items.${index}.qty`)} className="w-full p-2 rounded-lg border border-border bg-surface text-sm outline-none" />
+                    <Controller
+                      name={`items.${index}.hsn_code`}
+                      control={control}
+                      render={({ field }) => (
+                        <Combobox
+                          options={COMMON_HSN_CODES.map(h => ({
+                            label: `${h.code} - ${h.label}`,
+                            value: h.code
+                          }))}
+                          value={field.value}
+                          onChange={field.onChange}
+                          placeholder="HSN"
+                          searchPlaceholder="Search HSN/SAC..."
+                          className="w-full"
+                        />
+                      )}
+                    />
                   </td>
                   <td className="p-4">
-                    <input type="number" step="any" {...register(`items.${index}.rate`)} className="w-full p-2 rounded-lg border border-border bg-surface text-sm outline-none" />
+                    <input type="number" step="any" {...register(`items.${index}.qty`)} className="w-full h-9 px-3 rounded-lg border border-border/30 bg-background text-xs font-bold outline-none text-center" />
                   </td>
-                  <td className="p-4 text-right font-bold text-sm">
+                  <td className="p-4">
+                    <input type="number" step="any" {...register(`items.${index}.rate`)} className="w-full h-9 px-3 rounded-lg border border-border/30 bg-background text-xs font-bold outline-none text-right" />
+                  </td>
+                  <td className="p-4 text-right font-black text-sm italic">
                     {formatCurrency(Number(watchedItems?.[index]?.qty || 0) * Number(watchedItems?.[index]?.rate || 0))}
                   </td>
-                  <td className="p-4">
-                    <button type="button" onClick={() => remove(index)} className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors">
-                      <Trash2 size={16} />
+                  <td className="p-4 text-center">
+                    <button type="button" onClick={() => remove(index)} className="size-8 grid place-items-center text-red-500/30 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all mx-auto">
+                      <Trash2 size={14} />
                     </button>
                   </td>
                 </tr>
@@ -186,25 +311,44 @@ export function QuotationForm({ initialData, onSuccess, onCancel }: QuotationFor
         </div>
       </div>
 
-      <div className="flex justify-between items-end gap-8 pt-6 border-t border-border">
-        <div className="flex-1 space-y-2">
-          <label className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Notes</label>
-          <textarea {...register("notes")} className="w-full p-3 rounded-xl border border-border bg-surface outline-none h-24" placeholder="Quotation valid for 30 days..." />
-        </div>
-        <div className="w-80 bg-foreground/5 p-6 rounded-2xl border border-border">
-          <div className="flex justify-between items-center">
-            <span className="font-bold text-lg">Total Estimate</span>
-            <span className="text-2xl font-black text-brand">{formatCurrency(totals.total_amount)}</span>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 pt-6 border-t border-border/30">
+        <div className="lg:col-span-7">
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1">Additional Terms / Validity Notes</label>
+            <textarea {...register("notes")} className="w-full p-4 rounded-2xl border border-border/50 bg-foreground/[0.02] outline-none focus:ring-2 focus:ring-brand/50 h-32 text-xs" placeholder="e.g. Delivery within 7 days, payment 50% advance..." />
           </div>
         </div>
-      </div>
 
-      <div className="flex justify-end gap-4">
-        <button type="button" onClick={onCancel} className="px-6 py-3 rounded-xl hover:bg-foreground/5 transition-colors font-bold uppercase tracking-widest text-xs">Cancel</button>
-        <button type="submit" disabled={loading} className="px-8 py-3 rounded-xl bg-gradient-brand text-brand-foreground font-bold uppercase tracking-widest text-xs shadow-glow hover:brightness-110 transition flex items-center gap-2">
-          {loading && <Loader2 size={16} className="animate-spin" />}
-          Generate Quotation
-        </button>
+        <div className="lg:col-span-5 flex flex-col justify-between">
+          <div className="glass p-6 rounded-3xl border border-white/5 space-y-4 bg-surface/50">
+            <div className="flex justify-between items-center">
+              <div className="flex flex-col">
+                <span className="text-[9px] font-black uppercase tracking-[0.3em] text-brand">Total Estimate</span>
+                <span className="text-[7px] font-bold text-muted-foreground uppercase tracking-widest italic">Includes GST if applicable</span>
+              </div>
+              <span className="text-4xl font-black text-foreground tracking-tighter italic">
+                {formatCurrency(totals.total_amount)}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex gap-3 mt-6">
+            <button 
+              type="button" 
+              onClick={onCancel} 
+              className="flex-1 h-12 rounded-2xl border border-border/50 hover:bg-foreground/5 transition-all font-black uppercase tracking-[0.2em] text-[10px]"
+            >
+              Discard
+            </button>
+            <button 
+              type="submit" 
+              disabled={loading} 
+              className="flex-[2] h-12 rounded-2xl bg-brand text-brand-foreground font-black uppercase tracking-[0.2em] text-[10px] shadow-glow hover:brightness-110 transition flex items-center justify-center gap-3"
+            >
+              {loading ? <Loader2 size={16} className="animate-spin" /> : "Authorize & Generate"}
+            </button>
+          </div>
+        </div>
       </div>
     </form>
   );

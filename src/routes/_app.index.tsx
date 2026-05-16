@@ -14,7 +14,8 @@ import {
   Plus, 
   ArrowRight,
   ShieldCheck,
-  AlertCircle
+  AlertCircle,
+  LayoutDashboard
 } from "lucide-react";
 import { AdminCard as Card } from "@/components/admin/AdminCard";
 import { PageHeader } from "@/components/admin/PageHeader";
@@ -110,16 +111,17 @@ function Dashboard() {
   ];
 
   const quickActions = [
-    { label: "New Invoice", icon: Plus, to: "/invoices", color: "bg-brand text-brand-foreground shadow-glow" },
-    { label: "Add Customer", icon: Users, to: "/customers", color: "bg-surface border border-border" },
-    { label: "New Product", icon: Package, to: "/products", color: "bg-surface border border-border" },
+    { label: "New Invoice", icon: Plus, to: "/invoices-new", color: "bg-brand text-brand-foreground shadow-glow hover:scale-[1.02] hover:-translate-y-1 hover:shadow-[0_20px_50px_-12px_rgba(59,130,246,0.5)] hover:brightness-110" },
+    { label: "New Quotation", icon: FileText, to: "/quotations-new", color: "bg-surface border border-border hover:border-brand hover:bg-brand/10 hover:text-brand hover:scale-[1.02] hover:-translate-y-1 hover:shadow-[0_15px_30px_-10px_rgba(59,130,246,0.2)]" },
+    { label: "Add Customer", icon: Users, to: "/customers", color: "bg-surface border border-border hover:border-brand hover:bg-brand/10 hover:text-brand hover:scale-[1.02] hover:-translate-y-1 hover:shadow-[0_15px_30px_-10px_rgba(59,130,246,0.2)]" },
   ];
 
   return (
     <div className="space-y-8 pb-10">
       <PageHeader 
-        title="Welcome Back" 
+        title="Dashboard" 
         subtitle="Here's a summary of your business performance today." 
+        icon={LayoutDashboard}
       />
 
       {/* Quick Actions - Mobile Scrollable */}
@@ -128,26 +130,28 @@ function Dashboard() {
           <Link 
             key={action.label} 
             to={action.to}
-            className={`flex-shrink-0 flex items-center gap-3 px-6 py-4 rounded-2xl transition-all hover:scale-105 active:scale-95 ${action.color}`}
+            className={`flex-shrink-0 flex items-center gap-2 md:gap-3 px-4 py-2.5 md:px-6 md:py-4 rounded-xl md:rounded-2xl transition-all duration-300 active:scale-[0.98] group ${action.color}`}
           >
-            <div className="size-8 rounded-lg bg-white/20 grid place-items-center">
-              <action.icon size={18} />
+            <div className="size-7 md:size-8 rounded-lg bg-white/10 group-hover:bg-brand/20 grid place-items-center transition-all duration-300">
+              <action.icon size={16} className="md:hidden group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+              <action.icon size={18} className="hidden md:block group-hover:scale-110 group-hover:rotate-3 transition-transform" />
             </div>
-            <span className="font-bold whitespace-nowrap">{action.label}</span>
+            <span className="font-bold whitespace-nowrap text-sm md:text-base tracking-tight">{action.label}</span>
           </Link>
         ))}
       </div>
       
       {/* Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         {statCards.map((s, i) => (
           <motion.div key={s.t} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}>
-            <Card className="p-6 relative overflow-hidden group">
+            <Card className="p-4 md:p-6 relative overflow-hidden group">
               <div className="absolute -top-10 -right-10 size-32 rounded-full blur-3xl opacity-10 group-hover:opacity-20 transition-opacity" style={{ background: `oklch(0.6 0.2 ${s.hue})` }} />
-              <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-3 md:gap-4">
                 <div className="flex items-center justify-between">
-                  <div className="size-12 grid place-items-center rounded-2xl bg-foreground/5 text-muted-foreground group-hover:text-brand transition-colors">
-                    <s.icon size={24} />
+                  <div className="size-10 md:size-12 grid place-items-center rounded-2xl bg-foreground/5 text-muted-foreground group-hover:text-brand transition-colors">
+                    <s.icon size={20} className="md:hidden" />
+                    <s.icon size={24} className="hidden md:block" />
                   </div>
                   {s.c && (
                     <div className="px-2 py-1 rounded-full bg-emerald-500/10 text-emerald-500 text-[10px] font-black uppercase tracking-widest">
@@ -156,8 +160,8 @@ function Dashboard() {
                   )}
                 </div>
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-1">{s.t}</p>
-                  <h4 className="text-3xl font-black tracking-tight">{s.v}</h4>
+                  <p className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-muted-foreground mb-1">{s.t}</p>
+                  <h4 className="text-2xl md:text-3xl font-black tracking-tight">{s.v}</h4>
                   <p className="text-[10px] text-muted-foreground mt-1 flex items-center gap-1">
                     {s.sub}
                   </p>
@@ -168,9 +172,9 @@ function Dashboard() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-8">
         {/* Main Chart */}
-        <Card className="lg:col-span-2 p-8">
+        <Card className="lg:col-span-2 p-4 md:p-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
             <div>
               <h3 className="font-black text-xl uppercase tracking-tighter">Financial Growth</h3>
@@ -239,8 +243,8 @@ function Dashboard() {
         </Card>
 
         {/* Recent Invoices */}
-        <Card className="p-8 flex flex-col">
-          <div className="flex items-center justify-between mb-8">
+        <Card className="p-4 md:p-8 flex flex-col">
+          <div className="flex items-center justify-between mb-4 md:mb-8">
             <h3 className="font-black text-xl uppercase tracking-tighter">Recent Sales</h3>
             <Link to="/invoices" className="text-[10px] font-black uppercase tracking-widest text-brand hover:opacity-70 transition-opacity flex items-center gap-1">
               All <ArrowRight size={12} />
@@ -261,9 +265,9 @@ function Dashboard() {
                   initial={{ opacity: 0, x: 20 }} 
                   animate={{ opacity: 1, x: 0 }} 
                   transition={{ delay: i * 0.05 }}
-                  className="flex items-center gap-4 group cursor-pointer"
+                  className="flex items-center gap-3 md:gap-4 group cursor-pointer"
                 >
-                  <div className="size-12 rounded-2xl bg-foreground/5 grid place-items-center font-mono text-xs font-black text-brand group-hover:bg-brand group-hover:text-brand-foreground transition-all">
+                  <div className="size-10 md:size-12 rounded-2xl bg-foreground/5 grid place-items-center font-mono text-[10px] md:text-xs font-black text-brand group-hover:bg-brand group-hover:text-brand-foreground transition-all">
                     #{inv.invoice_number.slice(-2)}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -285,9 +289,9 @@ function Dashboard() {
       </div>
 
       {/* Bottom Insights */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <Card className="p-6 bg-gradient-brand text-brand-foreground">
-          <div className="flex items-center gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+        <Card className="p-4 md:p-6 bg-gradient-brand text-brand-foreground">
+          <div className="flex items-center gap-3 md:gap-4">
             <div className="size-12 rounded-2xl bg-white/20 grid place-items-center">
               <TrendingUp size={24} />
             </div>
@@ -301,7 +305,7 @@ function Dashboard() {
           </p>
         </Card>
 
-        <Card className="p-6 border-dashed border-2 border-border bg-transparent flex items-center justify-center text-center group cursor-pointer hover:border-brand transition-colors">
+        <Card className="p-4 md:p-6 border-dashed border-2 border-border bg-transparent flex items-center justify-center text-center group cursor-pointer hover:border-brand transition-colors">
           <div className="space-y-2">
             <div className="size-10 rounded-xl bg-foreground/5 grid place-items-center mx-auto text-muted-foreground group-hover:text-brand group-hover:bg-brand/10 transition-all">
               <Plus size={24} />

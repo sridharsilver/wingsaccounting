@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.wingsgraphics.studio',
-  appName: 'Wings Design Studio',
+  appId: 'com.wings.accounting',
+  appName: 'Wings Accounting',
   webDir: 'dist',
   plugins: {
     PushNotifications: {

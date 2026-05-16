@@ -54,8 +54,9 @@ function ProductsPage() {
   return (
     <div className="space-y-6">
       <PageHeader 
-        title="Products & Services" 
+        title="Inventory Vault" 
         subtitle="Manage your inventory items, HSN codes, and GST rates."
+        icon={Briefcase}
         action={<AddButton label="Add Product" onClick={() => { setSelectedProduct(null); setIsDrawerOpen(true); }} />}
       />
 
