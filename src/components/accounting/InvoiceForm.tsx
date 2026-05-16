@@ -118,7 +118,7 @@ export function InvoiceForm({ initialData, onSuccess, onCancel }: InvoiceFormPro
       if (customer) {
         const isInterState = customer.state_code !== sellerSettings.state_code;
         setValue("gst_type", isInterState ? "IGST" : "CGST_SGST");
-        setValue("place_of_supply", customer.state || "");
+        // We no longer auto-overwrite place_of_supply here to honor the company default
       }
     }
   }, [watchedCustomerId, sellerSettings, customers, setValue]);
