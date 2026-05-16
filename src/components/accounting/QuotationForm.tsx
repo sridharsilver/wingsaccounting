@@ -320,10 +320,10 @@ export function QuotationForm({ initialData, onSuccess, onCancel }: QuotationFor
                     />
                   </td>
                   <td className="p-4">
-                    <input type="number" step="any" {...register(`items.${index}.qty`)} className="w-full h-9 px-3 rounded-lg border border-border/30 bg-background text-xs font-bold outline-none text-center" />
+                    <input type="number" step="any" {...register(`items.${index}.qty`, { valueAsNumber: true })} className="w-full h-9 px-3 rounded-lg border border-border/30 bg-background text-xs font-bold outline-none text-center" />
                   </td>
                   <td className="p-4">
-                    <input type="number" step="any" {...register(`items.${index}.rate`)} className="w-full h-9 px-3 rounded-lg border border-border/30 bg-background text-xs font-bold outline-none text-right" />
+                    <input type="number" step="any" {...register(`items.${index}.rate`, { valueAsNumber: true })} className="w-full h-9 px-3 rounded-lg border border-border/30 bg-background text-xs font-bold outline-none text-right" />
                   </td>
                   <td className="p-4 text-right font-black text-sm italic">
                     {formatCurrency(Number(watchedItems?.[index]?.qty || 0) * Number(watchedItems?.[index]?.rate || 0))}
